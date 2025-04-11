@@ -42,9 +42,9 @@ main() {
     cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor >"$USERDATA_PATH/PSP-ppsspp/cpu_governor.txt"
     cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq >"$USERDATA_PATH/PSP-ppsspp/cpu_min_freq.txt"
     cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq >"$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt"
-    echo performance >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    echo ondemand >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
     echo 1608000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
-    echo 2000000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    echo 1800000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
 
     cd "$EMU_DIR"
     export HOME="$EMU_DIR"
