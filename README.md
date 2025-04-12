@@ -20,6 +20,11 @@ The pak may work on other platforms and devices, but it has not been tested on t
 6. Create a folder at `/Roms/PlayStation Portable (PSP)` and place your roms in this directory.
 7. Unmount your SD Card and insert it into your MinUI device.
 
+## Extra Controls
+
+- `Menu` - Open the PPSSPP menu.
+- `R2` + `Up/Down/Left/Right` - Move the analog stick.
+
 ## Saves & States
 
 - Save states are stored in the `/.userdata/shared/PSP-ppsspp/` directory.
