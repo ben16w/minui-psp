@@ -10,10 +10,12 @@ echo $0 $*
 
 mkdir -p "$USERDATA_PATH/PSP-ppsspp"
 EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
-PACK_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak"
+PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak"
 
-export PATH="$EMU_DIR:$PACK_DIR/bin:$PATH"
-export LD_LIBRARY_PATH="$EMU_DIR/libs:$PACK_DIR/lib:$LD_LIBRARY_PATH"
+export PATH="$EMU_DIR:$PAK_DIR/bin:$PATH"
+export LD_LIBRARY_PATH="$EMU_DIR/libs:$PAK_DIR/lib:$LD_LIBRARY_PATH"
+
+PPSSPP_BIN="PPSSPPSDL"
 
 cleanup() {
     rm -f /tmp/stay_awake
@@ -56,6 +58,12 @@ main() {
     mkdir -p "$SHARED_USERDATA_PATH/PSP-ppsspp"
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
+
+	PROCESS_PID="$(pgrep -f "$PPSSPP_BIN" | tail -n 1)"
+	if [ -f "$PAK_DIR/bin/$PLATFORM/handle-power-button" ]; then
+		chmod +x "$PAK_DIR/bin/$PLATFORM/handle-power-button"
+		handle-power-button "$PROCESS_PID" &
+	fi
 
     "$EMU_DIR/PPSSPPSDL" "$*"
 }
