@@ -4,6 +4,7 @@ PAK_NAME := $(shell jq -r .label config.json)
 ARCHITECTURES := arm64
 PLATFORMS := tg5040
 
+COREUTILS_VERSION := 0.0.28
 EVTEST_VERSION := 0.1.0
 
 clean:
