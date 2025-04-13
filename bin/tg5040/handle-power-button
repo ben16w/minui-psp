@@ -23,6 +23,18 @@ BUTTON_CODE="code 116 (KEY_POWER)"
 
 SUSPEND_SCRIPT="$SYSTEM_PATH/bin/suspend"
 
+execute_power_off() {
+	echo "Shutting down the system..."
+	if command -v poweroff >/dev/null 2>&1; then
+		poweroff
+	elif command -v shutdown >/dev/null 2>&1; then
+		shutdown -h now
+	else
+		echo "No poweroff or shutdown command found. Attempting to halt."
+		halt
+	fi
+}
+
 execute_sleep() {
 	set -x
 	PROCESS_PID="$1"
@@ -43,9 +55,7 @@ main() {
 
 	just_pressed=false
 	is_pressed=false
-	just_released=false
 	pressed_at=""
-	is_stopped=false
 
 	value_unpressed="value 0"
 	value_pressed="value 1"
@@ -68,18 +78,14 @@ main() {
 				just_pressed=false
 			fi
 			is_pressed=true
-			just_released=false
 		elif echo "$line" | grep "$BUTTON_CODE" | grep -q "$value_unpressed"; then
 			if [ "$is_pressed" = "true" ]; then
 				echo "The power button was just released: time=$now"
-				just_released=true
 				time_since_power_pressed=$((now - pressed_at))
 				if [ "$time_since_power_pressed" -ge 1000 ]; then
 					echo "Will force a power off: $time_since_power_pressed"
 					force_power_off=true
 				fi
-			else
-				just_released=false
 			fi
 			just_pressed=false
 			is_pressed=false
@@ -87,7 +93,6 @@ main() {
 		elif echo "$line" | grep "$BUTTON_CODE" | grep -q "$value_held"; then
 			is_pressed=true
 			just_pressed=false
-			just_released=false
 			time_since_power_pressed=$((now - pressed_at))
 			if [ "$time_since_power_pressed" -ge 1000 ]; then
 				echo "Will force a power off: $time_since_power_pressed"
@@ -100,21 +105,11 @@ main() {
 		if [ "$force_power_off" = "true" ]; then
 			sleep 1
 			echo "Forcing a power off"
-			PAUSE_EMIT_KEY_PID="$PAUSE_EMIT_KEY_PID" execute_power_off "$PROCESS_PID" "$ROM_PATH" "$is_stopped"
+			execute_power_off
 			break
 		elif [ "$just_pressed" = "true" ]; then
-			# go to sleep
-			if [ "$is_stopped" = "false" ]; then
-				echo "Pausing the game with a signal"
-				kill -USR1 "$PAUSE_EMIT_KEY_PID"
-				is_stopped=true
-				touch "/tmp/force-power-off-tracker"
-			else
-				echo "Resuming the game with a signal"
-				kill -USR1 "$PAUSE_EMIT_KEY_PID"
-				is_stopped=false
-				rm -f "/tmp/force-power-off-tracker"
-			fi
+			echo "Going to sleep"
+			execute_sleep "$1"
 		fi
 
 		sleep 0.02
