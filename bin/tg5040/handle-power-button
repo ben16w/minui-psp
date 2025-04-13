@@ -1,0 +1,124 @@
+#!/bin/sh
+BIN_DIR="$(dirname "$0")"
+PAK_DIR="$(dirname "$(dirname "$BIN_DIR")")"
+PAK_NAME="$(basename "$PAK_DIR")"
+PAK_NAME="${PAK_NAME%.*}"
+
+rm -f "$LOGS_PATH/$PAK_NAME.power-button.txt"
+exec >>"$LOGS_PATH/$PAK_NAME.power-button.txt"
+exec 2>&1
+
+echo "$0" "$@"
+cd "$PAK_DIR" || exit 1
+
+architecture=arm
+if uname -m | grep -q '64'; then
+	architecture=arm64
+fi
+
+export PATH="$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
+
+POWER_DEVICE="/dev/input/event1"
+BUTTON_CODE="code 116 (KEY_POWER)"
+
+SUSPEND_SCRIPT="$SYSTEM_PATH/bin/suspend"
+
+execute_sleep() {
+	set -x
+	PROCESS_PID="$1"
+
+	if [ ! -f "$SUSPEND_SCRIPT" ]; then
+		echo "Suspend script not found"
+		return
+	fi
+
+    kill -STOP "$PROCESS_PID" || true
+	chmod +x "$SUSPEND_SCRIPT"
+	"$SUSPEND_SCRIPT"
+    kill -CONT "$PROCESS_PID" || true
+}
+
+main() {
+	PROCESS_PID="$1"
+
+	just_pressed=false
+	is_pressed=false
+	just_released=false
+	pressed_at=""
+	is_stopped=false
+
+	value_unpressed="value 0"
+	value_pressed="value 1"
+	value_held="value 2"
+
+	evtest "$POWER_DEVICE" 2>/dev/null | while read -r line; do
+
+		now="$(coreutils date +%s%N)"
+		now="${now%??????}"
+		force_power_off=false
+
+		if echo "$line" | grep "$BUTTON_CODE" | grep -q "$value_pressed"; then
+			echo "The power button is pressed: time=$now"
+			if [ "$is_pressed" = "false" ]; then
+				echo "The power button was just pressed: time=$now"
+				just_pressed=true
+				pressed_at="$now"
+			else
+				echo "The power button was already pressed: time=$now"
+				just_pressed=false
+			fi
+			is_pressed=true
+			just_released=false
+		elif echo "$line" | grep "$BUTTON_CODE" | grep -q "$value_unpressed"; then
+			if [ "$is_pressed" = "true" ]; then
+				echo "The power button was just released: time=$now"
+				just_released=true
+				time_since_power_pressed=$((now - pressed_at))
+				if [ "$time_since_power_pressed" -ge 1000 ]; then
+					echo "Will force a power off: $time_since_power_pressed"
+					force_power_off=true
+				fi
+			else
+				just_released=false
+			fi
+			just_pressed=false
+			is_pressed=false
+			pressed_at=""
+		elif echo "$line" | grep "$BUTTON_CODE" | grep -q "$value_held"; then
+			is_pressed=true
+			just_pressed=false
+			just_released=false
+			time_since_power_pressed=$((now - pressed_at))
+			if [ "$time_since_power_pressed" -ge 1000 ]; then
+				echo "Will force a power off: $time_since_power_pressed"
+				force_power_off=true
+			fi
+		elif echo "$line" | grep -q -v "$BUTTON_CODE"; then
+			continue
+		fi
+
+		if [ "$force_power_off" = "true" ]; then
+			sleep 1
+			echo "Forcing a power off"
+			PAUSE_EMIT_KEY_PID="$PAUSE_EMIT_KEY_PID" execute_power_off "$PROCESS_PID" "$ROM_PATH" "$is_stopped"
+			break
+		elif [ "$just_pressed" = "true" ]; then
+			# go to sleep
+			if [ "$is_stopped" = "false" ]; then
+				echo "Pausing the game with a signal"
+				kill -USR1 "$PAUSE_EMIT_KEY_PID"
+				is_stopped=true
+				touch "/tmp/force-power-off-tracker"
+			else
+				echo "Resuming the game with a signal"
+				kill -USR1 "$PAUSE_EMIT_KEY_PID"
+				is_stopped=false
+				rm -f "/tmp/force-power-off-tracker"
+			fi
+		fi
+
+		sleep 0.02
+	done
+}
+
+main "$@"
