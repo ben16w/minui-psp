@@ -1,18 +1,26 @@
 #!/bin/sh
-set -eo pipefail
+PAK_DIR="$(dirname "$0")"
+PAK_NAME="$(basename "$PAK_DIR")"
+PAK_NAME="${PAK_NAME%.*}"
 set -x
 
-rm -f "$LOGS_PATH/PSP.txt"
-exec >>"$LOGS_PATH/PSP.txt"
+rm -f "$LOGS_PATH/$PAK_NAME.txt"
+exec >>"$LOGS_PATH/$PAK_NAME.txt"
 exec 2>&1
 
-echo $0 $*
+echo "$0" "$@"
+cd "$PAK_DIR" || exit 1
+mkdir -p "$USERDATA_PATH/$PAK_NAME"
 
-mkdir -p "$USERDATA_PATH/PSP-ppsspp"
-EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
-PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak"
+architecture=arm
+if uname -m | grep -q '64'; then
+	architecture=arm64
+fi
 
-export PATH="$EMU_DIR:$PAK_DIR/bin:$PATH"
+export EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
+export PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak"
+export HOME="$EMU_DIR"
+export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$EMU_DIR/libs:$PAK_DIR/lib:$LD_LIBRARY_PATH"
 
 PPSSPP_BIN="PPSSPPSDL"
@@ -49,7 +57,6 @@ main() {
     echo 1800000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
 
     cd "$EMU_DIR"
-    export HOME="$EMU_DIR"
 
     mkdir -p "$SDCARD_PATH/Saves/PSP"
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA"
@@ -59,13 +66,17 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
+    "$EMU_DIR/PPSSPPSDL" "$*" &
+
 	PROCESS_PID="$(pgrep -f "$PPSSPP_BIN" | tail -n 1)"
 	if [ -f "$PAK_DIR/bin/$PLATFORM/handle-power-button" ]; then
 		chmod +x "$PAK_DIR/bin/$PLATFORM/handle-power-button"
 		handle-power-button "$PROCESS_PID" &
 	fi
 
-    "$EMU_DIR/PPSSPPSDL" "$*"
+	while kill -0 "$PROCESS_PID" 2>/dev/null; do
+		sleep 1
+	done
 }
 
 main "$@"
