@@ -89,6 +89,8 @@ wait_for_power_button() {
             time_since_power_pressed=$((now - pressed_at))
             if [ "$time_since_power_pressed" -ge 1000 ]; then
                 start_power_off=true
+            else
+                start_sleep=true
             fi
         elif echo "$line" | grep -q -v "$BUTTON_CODE"; then
             continue
