@@ -41,13 +41,14 @@ cleanup() {
         rm -f "$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt"
     fi
 
-    umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
-    umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
-
     if [ -n "$HANDLE_POWER_BUTTON_PID" ]; then
         kill "$HANDLE_POWER_BUTTON_PID" || true
         wait "$HANDLE_POWER_BUTTON_PID" || true
     fi
+
+    umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
+    umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
+
 }
 
 main() {
