@@ -3,6 +3,7 @@ BIN_DIR="$(dirname "$0")"
 PAK_DIR="$(dirname "$(dirname "$BIN_DIR")")"
 PAK_NAME="$(basename "$PAK_DIR")"
 PAK_NAME="${PAK_NAME%.*}"
+[ -f "$USERDATA_PATH/$PAK_NAME/debug" ] && set -x
 
 rm -f "$LOGS_PATH/$PAK_NAME.power-button.txt"
 exec >>"$LOGS_PATH/$PAK_NAME.power-button.txt"
@@ -36,7 +37,6 @@ execute_power_off() {
 }
 
 execute_sleep() {
-    set -x
     PROCESS_PID="$1"
 
     if [ ! -f "$SUSPEND_SCRIPT" ]; then
@@ -51,36 +51,22 @@ execute_sleep() {
 
 }
 
-main() {
-    PROCESS_PID="$1"
-
-    is_pressed=false
-    pressed_at=""
-    start_power_off=false
-    start_sleep=false
-    slept_at=""
-
+wait_for_power_button() {
     value_unpressed="value 0"
     value_pressed="value 1"
     value_held="value 2"
+    is_pressed=false
+    pressed_at=""
 
-    evtest "$POWER_DEVICE" 2>/dev/null | while read -r line; do
-        if echo "$line" | grep -q -v "$BUTTON_CODE"; then
-            continue
-        fi
+    evtest "$POWER_DEVICE" > /tmp/evtest_output 2>/dev/null &
+    EVTEST_PID=$!
+    sleep 0.5
 
+    while read -r line; do
         now="$(coreutils date +%s%N)"
         now="${now%??????}"
-
-        if [ "$start_sleep" = "true" ]; then
-            time_since_slept=$((now - slept_at))
-            if [ "$time_since_slept" -ge 2000 ]; then
-                start_sleep=false
-                pressed_at=""
-            fi
-            continue
-        fi
-
+        start_power_off=false
+        start_sleep=false
 
         if echo "$line" | grep "$BUTTON_CODE" | grep -q "$value_pressed"; then
             if [ "$is_pressed" = "false" ]; then
@@ -104,21 +90,41 @@ main() {
             if [ "$time_since_power_pressed" -ge 1000 ]; then
                 start_power_off=true
             fi
+        elif echo "$line" | grep -q -v "$BUTTON_CODE"; then
+            continue
         fi
 
-        if [ "$start_power_off" = "true" ]; then
-            sleep 1
-            echo "Forcing a power off"
-            execute_power_off
-            #break
-        elif [ "$start_sleep" = "true" ]; then
-            echo "Going to sleep"
-            execute_sleep "$1"
-            slept_at="$(coreutils date +%s%N)"
-            slept_at="${now%??????}"
+        if [ "$start_sleep" = "true" ]; then
+            kill "$EVTEST_PID" 2>/dev/null
+            return 1
+        elif [ "$start_power_off" = "true" ]; then
+            kill "$EVTEST_PID" 2>/dev/null
+            return 2
         fi
 
         sleep 0.02
+    done < /tmp/evtest_output
+    kill "$EVTEST_PID" 2>/dev/null
+}
+
+main() {
+    PROCESS_PID="$1"
+
+    while true; do
+
+        wait_for_power_button
+        result=$?
+
+        if [ "$result" -eq 1 ]; then
+            echo "Power button pressed, suspending..."
+            execute_sleep "$PROCESS_PID"
+        elif [ "$result" -eq 2 ]; then
+            echo "Power button pressed for more than 1 second, shutting down..."
+            #execute_power_off
+        fi
+
+        sleep 1
+
     done
 }
 
