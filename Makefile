@@ -10,7 +10,16 @@ clean:
 	rm -f bin/*/evtest || true
 	rm -f bin/*/evtest.LICENSE || true
 
-build: $(foreach arch,$(ARCHITECTURES),bin/$(arch)/evtest)
+build: $(foreach arch,$(ARCHITECTURES),bin/$(arch)/coreutils bin/$(arch)/evtest)
+
+bin/arm64/coreutils:
+	mkdir -p bin/arm64
+	curl -sSL -o bin/arm64/coreutils.tar.gz "https://github.com/uutils/coreutils/releases/download/$(COREUTILS_VERSION)/coreutils-$(COREUTILS_VERSION)-aarch64-unknown-linux-gnu.tar.gz"
+	tar -xzf bin/arm64/coreutils.tar.gz -C bin/arm64 --strip-components=1
+	rm bin/arm64/coreutils.tar.gz
+	chmod +x bin/arm64/coreutils
+	mv bin/arm64/LICENSE bin/arm64/coreutils.LICENSE
+	rm bin/arm64/README.md bin/arm64/README.package.md || true
 
 bin/%/evtest:
 	mkdir -p bin/$*

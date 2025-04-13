@@ -43,6 +43,11 @@ cleanup() {
 
     umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
     umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
+
+    if [ -n "$HANDLE_POWER_BUTTON_PID" ]; then
+        kill "$HANDLE_POWER_BUTTON_PID" || true
+        wait "$HANDLE_POWER_BUTTON_PID" || true
+    fi
 }
 
 main() {
@@ -55,8 +60,6 @@ main() {
     echo ondemand >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
     echo 1608000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
     echo 1800000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
-
-    cd "$EMU_DIR"
 
     mkdir -p "$SDCARD_PATH/Saves/PSP"
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA"
@@ -72,6 +75,7 @@ main() {
 	if [ -f "$PAK_DIR/bin/$PLATFORM/handle-power-button" ]; then
 		chmod +x "$PAK_DIR/bin/$PLATFORM/handle-power-button"
 		handle-power-button "$PROCESS_PID" &
+        HANDLE_POWER_BUTTON_PID=$!
 	fi
 
 	while kill -0 "$PROCESS_PID" 2>/dev/null; do

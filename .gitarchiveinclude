@@ -1,2 +1,4 @@
+bin/arm64/coreutils
+bin/arm64/coreutils.LICENSE
 bin/arm64/evtest
 bin/arm64/evtest.LICENSE
