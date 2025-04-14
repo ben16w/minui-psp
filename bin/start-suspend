@@ -1,0 +1,43 @@
+#!/bin/sh
+BIN_DIR="$(dirname "$0")"
+PAK_DIR="$(dirname "$(dirname "$BIN_DIR")")"
+PAK_NAME="$(basename "$PAK_DIR")"
+PAK_NAME="${PAK_NAME%.*}"
+[ -f "$USERDATA_PATH/$PAK_NAME/debug" ] && set -x
+
+rm -f "$LOGS_PATH/$PAK_NAME.power-button.txt"
+exec >>"$LOGS_PATH/$PAK_NAME.power-button.txt"
+exec 2>&1
+
+echo "$0" "$@"
+cd "$PAK_DIR" || exit 1
+
+architecture=arm
+if uname -m | grep -q '64'; then
+    architecture=arm64
+fi
+
+export PATH="$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
+
+SUSPEND_SCRIPT="$SYSTEM_PATH/bin/suspend"
+PPSSPP_BIN="PPSSPPSDL"
+
+main() {
+    if [ ! -f "$SUSPEND_SCRIPT" ]; then
+        echo "Suspend script not found. Is it supported on this device?"
+        return
+    fi
+
+    PROCESS_PID=$(pgrep -f "$PPSSPP_BIN" | head -n 1)
+    if [ -z "$PROCESS_PID" ]; then
+        echo "PPSSPP process not found."
+        return
+    fi
+
+    kill -STOP "$PROCESS_PID" || true
+    chmod +x "$SUSPEND_SCRIPT"
+    "$SUSPEND_SCRIPT"
+    kill -CONT "$PROCESS_PID" || true
+}
+
+main "$@"

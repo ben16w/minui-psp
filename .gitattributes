@@ -3,4 +3,4 @@
 .gitarchiveinclude export-ignore
 .gitignore export-ignore
 Makefile export-ignore
-src export-ignore
+src/ export-ignore

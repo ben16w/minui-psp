@@ -17,18 +17,13 @@ if uname -m | grep -q '64'; then
 	architecture=arm64
 fi
 
+PPSSPP_BIN="PPSSPPSDL"
+
 export EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
 export PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak"
 export HOME="$EMU_DIR"
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$EMU_DIR/libs:$PAK_DIR/lib:$LD_LIBRARY_PATH"
-
-PPSSPP_BIN="PPSSPPSDL"
-POWER_BUTTON_SUPPORTED=false
-if [ -f "$PAK_DIR/bin/$PLATFORM/handle-power-button" ]; then
-    POWER_BUTTON_SUPPORTED=true
-    chmod +x "$PAK_DIR/bin/$PLATFORM/handle-power-button"
-fi
 
 cleanup() {
     rm -f /tmp/stay_awake
@@ -46,9 +41,9 @@ cleanup() {
         rm -f "$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt"
     fi
 
-    if [ -n "$HANDLE_POWER_LOOP_PID" ]; then
-        kill "$HANDLE_POWER_LOOP_PID" || true  # Stop the background loop
-        wait "$HANDLE_POWER_LOOP_PID" || true
+    if [ -n "$HANDLE_POWER_BUTTON_PID" ]; then
+        kill "$HANDLE_POWER_BUTTON_PID" || true
+        wait "$HANDLE_POWER_BUTTON_PID" || true
     fi
 
     umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
@@ -75,20 +70,13 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    PPSSPPSDL "$*" &
-	PROCESS_PID=$!
-
-    if [ "$POWER_BUTTON_SUPPORTED" = true ]; then
-        while true; do
-            handle-power-button "$PROCESS_PID"
-            sleep 1
-        done &
-        HANDLE_POWER_LOOP_PID=$!
+    if [ -f "$PAK_DIR/bin/$architecture/handle-power-button" ]; then
+        chmod +x "$PAK_DIR/bin/$architecture/handle-power-button"
+        handle-power-button &
+        HANDLE_POWER_BUTTON_PID=$!
 	fi
 
-	while kill -0 "$PROCESS_PID" 2>/dev/null; do
-		sleep 1
-	done
+    "$PPSSPPSDL" "$*"
 }
 
 main "$@"

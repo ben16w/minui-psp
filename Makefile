@@ -11,7 +11,10 @@ clean:
 	rm -f bin/*/evtest || true
 	rm -f bin/*/evtest.LICENSE || true
 
-build: $(foreach arch,$(ARCHITECTURES),bin/$(arch)/coreutils bin/$(arch)/evtest)
+build: $(foreach arch,$(ARCHITECTURES),bin/$(arch)/coreutils bin/$(arch)/evtest bin/$(arch)/handle-power-button)
+	@echo "Building for $(ARCHITECTURES)"
+	@echo "Building for $(PLATFORMS)"
+	@echo "Build complete"
 
 bin/arm64/coreutils:
 	mkdir -p bin/arm64
@@ -31,7 +34,7 @@ bin/%/evtest:
 # compile the go code at bin/tg5040/handle-power-button.go
 bin/%/handle-power-button:
 	mkdir -p bin/$*
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o bin/$*/handle-power-button -ldflags="-s -w" -trimpath ./src/handle-power-button.go
+	CGO_ENABLED=0 GOOS=linux GOARCH="$*" go build -o bin/$*/handle-power-button -ldflags="-s -w" -trimpath ./src/handle-power-button.go
 	chmod +x bin/$*/handle-power-button
 
 release: build
