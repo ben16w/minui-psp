@@ -76,7 +76,7 @@ main() {
         HANDLE_POWER_BUTTON_PID=$!
 	fi
 
-    "$PPSSPPSDL" "$*"
+    "$PPSSPP_BIN" "$*"
 }
 
 main "$@"

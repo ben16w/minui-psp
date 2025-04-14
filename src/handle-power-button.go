@@ -13,8 +13,8 @@ const (
 	powerKeyCode   = 116 // KEY_POWER
 	shortPressMax  = 2 * time.Second
 	devicePath     = "/dev/input/event1" // Change this to the actual device
-	suspendScript  = "../start-suspend.sh"
-	shutdownScript = "../start-shutdown.sh"
+	suspendScript  = "../start-suspend"
+	shutdownScript = "../start-shutdown"
 )
 
 func main() {
@@ -45,12 +45,20 @@ func main() {
 
 				if duration < shortPressMax {
 					fmt.Println("Short press detected, suspending...")
-					exec.Command(suspendScript).Run()
+					runScript(suspendScript)
 				} else {
 					fmt.Println("Long press detected, shutting down...")
-					//exec.Command(shutdownScript).Run()
+					runScript(shutdownScript)
 				}
 			}
 		}
+	}
+}
+
+func runScript(scriptPath string) {
+	fmt.Printf("Running script: %s\n", scriptPath)
+	cmd := exec.Command(scriptPath)
+	if err := cmd.Run(); err != nil {
+		log.Printf("Failed to run %s script: %v", scriptPath, err)
 	}
 }
