@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os/exec"
 	"time"
 
 	"github.com/holoplot/go-evdev"
@@ -12,8 +13,8 @@ const (
 	powerKeyCode   = 116 // KEY_POWER
 	shortPressMax  = 2 * time.Second
 	devicePath     = "/dev/input/event1" // Change this to the actual device
-	suspendScript  = "/usr/local/bin/suspend.sh"
-	shutdownScript = "/usr/local/bin/shutdown.sh"
+	suspendScript  = "../start-suspend.sh"
+	shutdownScript = "../start-shutdown.sh"
 )
 
 func main() {
@@ -44,7 +45,7 @@ func main() {
 
 				if duration < shortPressMax {
 					fmt.Println("Short press detected, suspending...")
-					//exec.Command(suspendScript).Run()
+					exec.Command(suspendScript).Run()
 				} else {
 					fmt.Println("Long press detected, shutting down...")
 					//exec.Command(shutdownScript).Run()
