@@ -28,6 +28,12 @@ bin/%/evtest:
 	curl -sSL -o bin/$*/evtest.LICENSE "https://raw.githubusercontent.com/freedesktop-unofficial-mirror/evtest/refs/heads/master/COPYING"
 	chmod +x bin/$*/evtest
 
+# compile the go code at bin/tg5040/handle-power-button.go
+bin/%/handle-power-button:
+	mkdir -p bin/$*
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o bin/$*/handle-power-button -ldflags="-s -w" -trimpath ./src/handle-power-button.go
+	chmod +x bin/$*/handle-power-button
+
 release: build
 	mkdir -p dist
 	git archive --format=zip --output "dist/$(PAK_NAME).pak.zip" HEAD
