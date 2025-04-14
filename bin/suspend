@@ -28,13 +28,8 @@ main() {
         return
     fi
 
-    echo "Pausing process $PROCESS_PID"
     kill -STOP "$PROCESS_PID" || true
-
-    echo "Running suspend script $SYSTEM_SUSPEND_SCRIPT"
     "$SYSTEM_SUSPEND_SCRIPT"
-
-    echo "Resuming process $PROCESS_PID"
     kill -CONT "$PROCESS_PID" || true
 }
 

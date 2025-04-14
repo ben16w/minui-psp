@@ -36,7 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to open input device: %v", err)
 	}
-	log.Printf("Listening on device: %s\n", devicePath)
 
 	var pressTime time.Time
 	var cooldownUntil time.Time
@@ -49,7 +48,6 @@ func main() {
 		}
 
 		if time.Now().Before(cooldownUntil) {
-			log.Println("Cooldown period active, ignoring event")
 			continue
 		}
 
@@ -57,12 +55,10 @@ func main() {
 			if event.Value == 1 {
 				// Key pressed
 				pressTime = time.Now()
-				log.Println("Power button pressed")
 			} else if event.Value == 0 && !pressTime.IsZero() {
 				// Key released
 				duration := time.Since(pressTime)
 				pressTime = time.Time{} // Reset
-				log.Printf("Power button released after %v\n", duration)
 
 				if duration < shortPressMax {
 					log.Println("Short press detected, suspending...")
@@ -78,7 +74,6 @@ func main() {
 }
 
 func runScript(scriptPath string) {
-	log.Printf("Running script: %s\n", scriptPath)
 	cmd := exec.Command(scriptPath)
 	if err := cmd.Run(); err != nil {
 		log.Printf("Failed to run %s script: %v", scriptPath, err)
