@@ -51,18 +51,16 @@ execute_sleep() {
 
 }
 
-wait_for_power_button() {
+main() {
+    PROCESS_PID="$1"
+
     value_unpressed="value 0"
     value_pressed="value 1"
     value_held="value 2"
     is_pressed=false
     pressed_at=""
 
-    evtest "$POWER_DEVICE" > /tmp/evtest_output 2>/dev/null &
-    EVTEST_PID=$!
-    sleep 0.5
-
-    while read -r line; do
+    evtest "$POWER_DEVICE" 2>/dev/null | while read -r line; do
         now="$(coreutils date +%s%N)"
         now="${now%??????}"
         start_power_off=false
@@ -97,36 +95,16 @@ wait_for_power_button() {
         fi
 
         if [ "$start_sleep" = "true" ]; then
-            kill "$EVTEST_PID" 2>/dev/null
-            return 1
+            echo "Power button pressed, suspending..."
+            execute_sleep "$PROCESS_PID"
+            exit 0
         elif [ "$start_power_off" = "true" ]; then
-            kill "$EVTEST_PID" 2>/dev/null
-            return 2
+            echo "Power button pressed for more than 1 second, shutting down..."
+            #execute_power_off
+            exit 0
         fi
 
         sleep 0.02
-    done < /tmp/evtest_output
-    kill "$EVTEST_PID" 2>/dev/null
-}
-
-main() {
-    PROCESS_PID="$1"
-
-    while true; do
-
-        wait_for_power_button
-        result=$?
-
-        if [ "$result" -eq 1 ]; then
-            echo "Power button pressed, suspending..."
-            execute_sleep "$PROCESS_PID"
-        elif [ "$result" -eq 2 ]; then
-            echo "Power button pressed for more than 1 second, shutting down..."
-            #execute_power_off
-        fi
-
-        sleep 1
-
     done
 }
 

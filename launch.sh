@@ -24,6 +24,11 @@ export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR
 export LD_LIBRARY_PATH="$EMU_DIR/libs:$PAK_DIR/lib:$LD_LIBRARY_PATH"
 
 PPSSPP_BIN="PPSSPPSDL"
+POWER_BUTTON_SUPPORTED=false
+if [ -f "$PAK_DIR/bin/$PLATFORM/handle-power-button" ]; then
+    POWER_BUTTON_SUPPORTED=true
+    chmod +x "$PAK_DIR/bin/$PLATFORM/handle-power-button"
+fi
 
 cleanup() {
     rm -f /tmp/stay_awake
@@ -70,13 +75,16 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    "$EMU_DIR/PPSSPPSDL" "$*" &
-
+    PPSSPPSDL "$*" &
 	PROCESS_PID="$(pgrep -f "$PPSSPP_BIN" | tail -n 1)"
-	if [ -f "$PAK_DIR/bin/$PLATFORM/handle-power-button" ]; then
-		chmod +x "$PAK_DIR/bin/$PLATFORM/handle-power-button"
-		handle-power-button "$PROCESS_PID" &
-        HANDLE_POWER_BUTTON_PID=$!
+
+    if [ "$POWER_BUTTON_SUPPORTED" = true ]; then
+        while true; do
+            handle-power-button "$PROCESS_PID" &
+            HANDLE_POWER_BUTTON_PID=$!
+            wait "$HANDLE_POWER_BUTTON_PID"
+            sleep 1
+        done &
 	fi
 
 	while kill -0 "$PROCESS_PID" 2>/dev/null; do
