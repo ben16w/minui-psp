@@ -46,9 +46,9 @@ cleanup() {
         rm -f "$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt"
     fi
 
-    if [ -n "$HANDLE_POWER_BUTTON_PID" ]; then
-        kill "$HANDLE_POWER_BUTTON_PID" || true
-        wait "$HANDLE_POWER_BUTTON_PID" || true
+    if [ -n "$HANDLE_POWER_LOOP_PID" ]; then
+        kill "$HANDLE_POWER_LOOP_PID" || true  # Stop the background loop
+        wait "$HANDLE_POWER_LOOP_PID" || true
     fi
 
     umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
@@ -80,11 +80,10 @@ main() {
 
     if [ "$POWER_BUTTON_SUPPORTED" = true ]; then
         while true; do
-            handle-power-button "$PROCESS_PID" &
-            HANDLE_POWER_BUTTON_PID=$!
-            wait "$HANDLE_POWER_BUTTON_PID"
+            handle-power-button "$PROCESS_PID"
             sleep 1
         done &
+        HANDLE_POWER_LOOP_PID=$!
 	fi
 
 	while kill -0 "$PROCESS_PID" 2>/dev/null; do
