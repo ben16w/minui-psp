@@ -19,13 +19,13 @@ const (
 var (
 	binPath, _     = os.Executable()
 	pakPath, _     = filepath.Abs(filepath.Dir(filepath.Dir(filepath.Dir(binPath))))
-	logFile        = filepath.Join(os.Getenv("LOGS_PATH"), "PSP-power-button")
+	logFile        = filepath.Join(os.Getenv("LOGS_PATH"), "PSP-power-button.txt")
 	suspendScript  = filepath.Join(pakPath, "bin", "suspend")
 	shutdownScript = filepath.Join(pakPath, "bin", "shutdown")
 )
 
 func main() {
-	logFileHandle, err := os.OpenFile(logFile+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFileHandle, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}

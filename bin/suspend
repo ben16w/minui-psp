@@ -20,6 +20,7 @@ main() {
         echo "Suspend script not found. Is it supported on this device?"
         return
     fi
+    chmod +x "$SYSTEM_SUSPEND_SCRIPT"
 
     PROCESS_PID=$(pgrep -f "$PPSSPP_BIN" | head -n 1)
     if [ -z "$PROCESS_PID" ]; then
@@ -27,9 +28,13 @@ main() {
         return
     fi
 
+    echo "Pausing process $PROCESS_PID"
     kill -STOP "$PROCESS_PID" || true
-    chmod +x "$SYSTEM_SUSPEND_SCRIPT"
+
+    echo "Running suspend script $SYSTEM_SUSPEND_SCRIPT"
     "$SYSTEM_SUSPEND_SCRIPT"
+
+    echo "Resuming process $PROCESS_PID"
     kill -CONT "$PROCESS_PID" || true
 }
 
