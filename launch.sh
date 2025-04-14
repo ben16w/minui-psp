@@ -2,7 +2,7 @@
 PAK_DIR="$(dirname "$0")"
 PAK_NAME="$(basename "$PAK_DIR")"
 PAK_NAME="${PAK_NAME%.*}"
-set -x
+[ -f "$USERDATA_PATH/$PAK_NAME/debug" ] && set -x
 
 rm -f "$LOGS_PATH/$PAK_NAME.txt"
 exec >>"$LOGS_PATH/$PAK_NAME.txt"
@@ -76,7 +76,7 @@ main() {
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
     PPSSPPSDL "$*" &
-	PROCESS_PID="$(pgrep -f "$PPSSPP_BIN" | tail -n 1)"
+	PROCESS_PID=$!
 
     if [ "$POWER_BUTTON_SUPPORTED" = true ]; then
         while true; do
