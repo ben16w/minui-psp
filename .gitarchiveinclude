@@ -1,5 +1,1 @@
-bin/arm64/coreutils
-bin/arm64/coreutils.LICENSE
-bin/arm64/evtest
-bin/arm64/evtest.LICENSE
-bin/arm65/handle-power-button
+bin/arm64/handle-power-button
