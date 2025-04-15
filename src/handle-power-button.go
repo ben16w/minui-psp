@@ -19,7 +19,7 @@ const (
 var (
 	binPath, _     = os.Executable()
 	pakPath, _     = filepath.Abs(filepath.Dir(filepath.Dir(filepath.Dir(binPath))))
-	logFile        = filepath.Join(os.Getenv("LOGS_PATH"), "PSP-power-button.txt")
+	logFile        = filepath.Join(os.Getenv("LOGS_PATH"), "PSP-handle-power-button.txt")
 	suspendScript  = filepath.Join(pakPath, "bin", "suspend")
 	shutdownScript = filepath.Join(pakPath, "bin", "shutdown")
 )
@@ -36,6 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to open input device: %v", err)
 	}
+	log.Printf("Listening on device: %s\n", devicePath)
 
 	var pressTime time.Time
 	var cooldownUntil time.Time

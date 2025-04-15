@@ -4,3 +4,4 @@ bin/*
 res/fonts/*
 !res/fonts/.gitkeep
 !bin/suspend
+!bin/shutdown

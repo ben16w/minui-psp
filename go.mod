@@ -1,4 +1,4 @@
-module handle-power-button
+module minui-psp
 
 go 1.22.2
 
