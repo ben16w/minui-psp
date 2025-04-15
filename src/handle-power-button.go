@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	powerKeyCode  = 116 // KEY_POWER
+	powerKeyCode  = 116 // Power button key code
+	devicePath    = "/dev/input/event1"
 	shortPressMax = 2 * time.Second
-	devicePath    = "/dev/input/event1" // Change this to the actual device
+	coolDownTime  = 1 * time.Second
 )
 
 var (
@@ -61,7 +62,7 @@ func main() {
 				if duration < shortPressMax {
 					log.Println("Short press detected, suspending...")
 					runScript(suspendScript)
-					cooldownUntil = time.Now().Add(1 * time.Second)
+					cooldownUntil = time.Now().Add(coolDownTime)
 				}
 			} else if event.Value == 1 {
 				// Key pressed
@@ -72,7 +73,7 @@ func main() {
 				if duration >= shortPressMax {
 					log.Println("Button held down for 2 seconds, shutting down...")
 					runScript(shutdownScript)
-					cooldownUntil = time.Now().Add(1 * time.Second)
+					cooldownUntil = time.Now().Add(coolDownTime)
 				}
 			}
 		}
