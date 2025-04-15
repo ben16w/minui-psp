@@ -2,7 +2,7 @@
 PAK_DIR="$(dirname "$0")"
 PAK_NAME="$(basename "$PAK_DIR")"
 PAK_NAME="${PAK_NAME%.*}"
-[ -f "$USERDATA_PATH/$PAK_NAME/debug" ] && set -x
+[ -f "$USERDATA_PATH/PSP-ppsspp/debug" ] && set -x
 
 rm -f "$LOGS_PATH/$PAK_NAME.txt"
 exec >>"$LOGS_PATH/$PAK_NAME.txt"
@@ -17,13 +17,12 @@ if uname -m | grep -q '64'; then
 	architecture=arm64
 fi
 
-PPSSPP_BIN="PPSSPPSDL"
-
 export EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
 export PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak"
 export HOME="$EMU_DIR"
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
-export LD_LIBRARY_PATH="$EMU_DIR/libs:$PAK_DIR/lib:$LD_LIBRARY_PATH"
+
+PPSSPP_BIN="PPSSPPSDL"
 
 cleanup() {
     rm -f /tmp/stay_awake
