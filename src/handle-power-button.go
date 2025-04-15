@@ -53,10 +53,7 @@ func main() {
 		}
 
 		if event.Type == evdev.EV_KEY && event.Code == powerKeyCode {
-			if event.Value == 1 {
-				// Key pressed
-				pressTime = time.Now()
-			} else if event.Value == 0 && !pressTime.IsZero() {
+			if event.Value == 0 && !pressTime.IsZero() {
 				// Key released
 				duration := time.Since(pressTime)
 				pressTime = time.Time{} // Reset
@@ -65,9 +62,17 @@ func main() {
 					log.Println("Short press detected, suspending...")
 					runScript(suspendScript)
 					cooldownUntil = time.Now().Add(1 * time.Second)
-				} else {
-					log.Println("Long press detected, shutting down...")
+				}
+			} else if event.Value == 1 {
+				// Key pressed
+				pressTime = time.Now()
+			} else if event.Value == 2 {
+				// Key held down
+				duration := time.Since(pressTime)
+				if duration >= shortPressMax {
+					log.Println("Button held down for 2 seconds, shutting down...")
 					runScript(shutdownScript)
+					cooldownUntil = time.Now().Add(1 * time.Second)
 				}
 			}
 		}
