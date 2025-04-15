@@ -29,7 +29,7 @@ The pak may work on other platforms and devices, but it has not been tested on t
 
 Deep sleep is supported on NextUI and MinUI devices which have it enabled. Clicking the power button will immediately put the device into deep sleep. Clicking the power button again will wake the device up and resume the game.
 
-The device can also be shut down by pressing and holding the power button. **Warning**: This will **NOT** save the game, and you will lose any progress made since the last save. Also, the game will not be resumed when the device is turned back on.
+The device can also be shut down by pressing and holding the power button for 2 seconds. **Warning**: This will **NOT** save the game, and you will lose any progress made since the last save. Also, the game will not be resumed when the device is turned back on.
 
 ### Known Issues
 
