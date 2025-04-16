@@ -1,0 +1,43 @@
+#!/bin/sh
+BIN_DIR="$(dirname "$0")"
+PAK_DIR="$(dirname "$BIN_DIR")"
+PAK_NAME="$(basename "$PAK_DIR")"
+PAK_NAME="${PAK_NAME%.*}"
+[ -f "$USERDATA_PATH/PSP-ppsspp/debug" ] && set -x
+
+rm -f "$LOGS_PATH/$PAK_NAME.suspend.txt"
+exec >>"$LOGS_PATH/$PAK_NAME.suspend.txt"
+exec 2>&1
+
+echo "$0" "$@"
+cd "$PAK_DIR" || exit 1
+
+architecture=arm
+if uname -m | grep -q '64'; then
+    architecture=arm64
+fi
+
+export PATH="$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
+
+SYSTEM_SUSPEND_SCRIPT="$SYSTEM_PATH/bin/suspend"
+PPSSPP_BIN="PPSSPPSDL"
+
+main() {
+    if [ ! -f "$SYSTEM_SUSPEND_SCRIPT" ]; then
+        echo "Suspend script not found. Is deep sleep supported on this device?"
+        return
+    fi
+    chmod +x "$SYSTEM_SUSPEND_SCRIPT"
+
+    PROCESS_PID=$(pgrep -f "$PPSSPP_BIN" | head -n 1)
+    if [ -z "$PROCESS_PID" ]; then
+        echo "PPSSPP process not found."
+        return
+    fi
+
+    kill -STOP "$PROCESS_PID" || true
+    "$SYSTEM_SUSPEND_SCRIPT"
+    kill -CONT "$PROCESS_PID" || true
+}
+
+main "$@"
