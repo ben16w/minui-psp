@@ -16,9 +16,11 @@ The pak may work on other platforms and devices, but it has not been tested on t
 2. Download the latest release from GitHub. It will be named `PSP.pak.zip`.
 3. Copy the zip file to the correct platform folder in the "/Emus" directory on the SD card. Please ensure the new zip file name is `PSP.pak.zip`.
 4. Extract the zip in place, then delete the zip file.
-5. Confirm that there is a `/Emus/$PLATFORM/PSP.pak/launch.sh` file on your SD card.
+5. Confirm that there is a `/Emus/<PLATFORM>/PSP.pak/launch.sh` file on your SD card.
 6. Create a folder at `/Roms/PlayStation Portable (PSP)` and place your ROMs in this directory.
 7. Unmount your SD Card and insert it into your MinUI device.
+
+Note: The `<PLATFORM>` folder name is based on the name of your device. For example, if you are using a TrimUI Brick, the folder is `tg5040`.
 
 ## Extra Controls
 
