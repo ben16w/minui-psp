@@ -52,6 +52,6 @@ The device can also be shut down by pressing and holding the power button for 2 
 
 ## License
 
-This project uses PPSSPP, which is open-source software. Please refer to the original PPSSPP [license](https://raw.githubusercontent.com/hrydgard/ppsspp/refs/heads/master/LICENSE.TXT) for more information.
+This project uses PPSSPP, which is open-source software. Please refer to the original PPSSPP [license](PPSSPPSDL/LICENSE.TXT) file for more details.
 
-The project code which is not part of PPSSPP is licensed under the [MIT License](https://opensource.org/licenses/MIT). See the LICENSE file for more details.
+The project code which is not part of PPSSPP is licensed under the [MIT License](https://opensource.org/licenses/MIT). See the project [LICENSE](LICENSE) file for more details.
