@@ -14,7 +14,7 @@ mkdir -p "$USERDATA_PATH/$PAK_NAME"
 
 architecture=arm
 if uname -m | grep -q '64'; then
-	architecture=arm64
+    architecture=arm64
 fi
 
 export EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
@@ -73,7 +73,7 @@ main() {
         chmod +x "$PAK_DIR/bin/$architecture/handle-power-button"
         handle-power-button &
         HANDLE_POWER_BUTTON_PID=$!
-	fi
+    fi
 
     "$PPSSPP_BIN" "$*"
 }
