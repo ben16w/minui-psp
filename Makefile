@@ -8,6 +8,7 @@ MINUI_PRESENTER_VERSION := 0.7.0
 
 clean:
 	rm -f bin/*/handle-power-button
+	rm -f bin/*/minui-presenter
 
 build: $(foreach platform,$(PLATFORMS),bin/$(platform)/minui-presenter) $(foreach arch,$(ARCHITECTURES),bin/$(arch)/handle-power-button)
 	@echo "Building for $(ARCHITECTURES)"
