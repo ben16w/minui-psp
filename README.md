@@ -46,6 +46,7 @@ The device can also be shut down by pressing and holding the power button for 2 
 - [hrydgard](https://github.com/hrydgard) for developing [PPSSPP](https://github.com/hrydgard/ppsspp) and related projects
 - [Shaun Inman](https://github.com/shauninman) for developing [MinUI](https://github.com/shauninman/MinUI).
 - [ro8inmorgan](https://github.com/ro8inmorgan), [frysee](https://github.com/frysee) and the rest of the NextUI contributors for developing [NextUI](https://github.com/LoveRetro/NextUI).
+- Also, thank you, [josegonzalez](https://github.com/josegonzalez), for your pak repositories, which this project is based on.
 
 ## License
 
