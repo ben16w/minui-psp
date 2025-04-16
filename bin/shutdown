@@ -19,6 +19,8 @@ fi
 
 export PATH="$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
 
+PPSSPP_BIN="PPSSPPSDL"
+
 show_message() {
 	message="$1"
 	seconds="$2"
@@ -37,7 +39,13 @@ show_message() {
 }
 
 main() {
+    PROCESS_PID=$(pgrep -f "$PPSSPP_BIN" | head -n 1)
+	if [ -n "$PROCESS_PID" ]; then
+		kill "$PROCESS_PID" || true
+    fi
+
     show_message "Powering off" forever
+	
     sync
     poweroff
     while :; do
