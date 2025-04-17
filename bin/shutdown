@@ -22,30 +22,30 @@ export PATH="$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PAT
 PPSSPP_BIN="PPSSPPSDL"
 
 show_message() {
-	message="$1"
-	seconds="$2"
+    message="$1"
+    seconds="$2"
 
-	if [ -z "$seconds" ]; then
-		seconds="forever"
-	fi
+    if [ -z "$seconds" ]; then
+        seconds="forever"
+    fi
 
-	killall minui-presenter >/dev/null 2>&1 || true
-	echo "$message" 1>&2
-	if [ "$seconds" = "forever" ]; then
-		minui-presenter --message "$message" --timeout -1 &
-	else
-		minui-presenter --message "$message" --timeout "$seconds"
-	fi
+    killall minui-presenter >/dev/null 2>&1 || true
+    echo "$message" 1>&2
+    if [ "$seconds" = "forever" ]; then
+        minui-presenter --message "$message" --timeout -1 &
+    else
+        minui-presenter --message "$message" --timeout "$seconds"
+    fi
 }
 
 main() {
     PROCESS_PID=$(pgrep -f "$PPSSPP_BIN" | head -n 1)
-	if [ -n "$PROCESS_PID" ]; then
-		kill "$PROCESS_PID" || true
+    if [ -n "$PROCESS_PID" ]; then
+        kill "$PROCESS_PID" || true
     fi
 
     show_message "Powering off" forever
-	
+
     sync
     poweroff
     while :; do
