@@ -29,7 +29,7 @@ Note: The `<PLATFORM>` folder name is based on the name of your device. For exam
 
 ## Deep Sleep & Shutdown
 
-Deep sleep is supported on compatible devices. Click the power button to enter deep sleep. Click again to resume the game. To shut down, hold the power button for 2 seconds. **Note:** Shutdown does not save or resume your game and unsaved progress will be lost. For more information and issues, see the [MinUI Power Control](https://github.com/ben16w/minui-power-control).
+Deep sleep is supported on compatible devices. Click the power button to enter deep sleep. Click again to resume the game. To shut down, hold the power button for 2 seconds. **Note:** Shutdown does not save or resume the game and any unsaved progress will be lost. For more information and issues, see [MinUI Power Control](https://github.com/ben16w/minui-power-control).
 
 ## Saves & States
 
