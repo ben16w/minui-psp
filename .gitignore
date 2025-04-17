@@ -1,5 +1,4 @@
 dist
 bin/*
 
-!bin/suspend
-!bin/shutdown
+!bin/.gitkeep
