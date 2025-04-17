@@ -14,7 +14,7 @@ mkdir -p "$USERDATA_PATH/$PAK_NAME"
 
 architecture=arm
 if uname -m | grep -q '64'; then
-	architecture=arm64
+    architecture=arm64
 fi
 
 export EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"

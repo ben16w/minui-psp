@@ -31,7 +31,7 @@ Note: The `<PLATFORM>` folder name is based on the name of your device. For exam
 
 Deep sleep is supported on NextUI and MinUI devices which have it enabled. Clicking the power button will immediately put the device into deep sleep. Clicking the power button again will wake the device up and resume the game.
 
-The device can also be shut down by pressing and holding the power button for 2 seconds. **Warning**: This will **NOT** save the game, and you will lose any progress made since the last save. Also, the game will not be resumed when the device is turned back on.
+The device can also be shut down by pressing and holding the power button for 2 seconds. **Warning**: Currently this will **NOT** save the game, and you will lose any progress made since the last save. Also, the game will not be resumed when the device is turned back on.
 
 ### Known Issues
 
@@ -43,13 +43,15 @@ The device can also be shut down by pressing and holding the power button for 2 
 - Save states are stored in the `/.userdata/shared/PSP-ppsspp/` directory.
 - Game saves are stored in the `/Saves/PSP/` directory.
 
-## Credits
+## Thanks
 
-- [hrydgard](https://github.com/hrydgard) for developing [PPSSPP](https://github.com/hrydgard/ppsspp) and related projects
+- [hrydgard](https://github.com/hrydgard) for developing [PPSSPP](https://github.com/hrydgard/ppsspp) and related projects.
 - [Shaun Inman](https://github.com/shauninman) for developing [MinUI](https://github.com/shauninman/MinUI).
 - [ro8inmorgan](https://github.com/ro8inmorgan), [frysee](https://github.com/frysee) and the rest of the NextUI contributors for developing [NextUI](https://github.com/LoveRetro/NextUI).
 - Also, thank you, [josegonzalez](https://github.com/josegonzalez), for your pak repositories, which this project is based on.
 
 ## License
 
-This project is based on PPSSPP, which is open-source software. Please refer to the original PPSSPP license for more information.
+This project uses PPSSPP, which is open-source software. Please refer to the original PPSSPP [LICENSE.TXT](PPSSPPSDL/LICENSE.TXT) file for more details.
+
+The project code which is not part of PPSSPP is licensed under the [MIT License](https://opensource.org/licenses/MIT). See the project [LICENSE](LICENSE) file for more details.
