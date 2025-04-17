@@ -1,7 +1,7 @@
 TAG ?= latest
 PAK_NAME := $(shell jq -r .label config.json)
 
-MINUI_POWER_CONTROL_VERSION := 1.0.0
+MINUI_POWER_CONTROL_VERSION := 1.1.0
 
 clean:
 	rm -f bin/*/handle-power-button
