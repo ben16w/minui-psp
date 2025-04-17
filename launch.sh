@@ -40,14 +40,8 @@ cleanup() {
         rm -f "$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt"
     fi
 
-    if [ -n "$HANDLE_POWER_BUTTON_PID" ]; then
-        kill "$HANDLE_POWER_BUTTON_PID" || true
-        wait "$HANDLE_POWER_BUTTON_PID" || true
-    fi
-
     umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
     umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
-
 }
 
 main() {
@@ -69,12 +63,7 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    if [ -f "$PAK_DIR/bin/$architecture/handle-power-button" ]; then
-        chmod +x "$PAK_DIR/bin/$architecture/handle-power-button"
-        handle-power-button &
-        HANDLE_POWER_BUTTON_PID=$!
-    fi
-
+    minui-power-control "$PPSSPP_BIN" &
     "$PPSSPP_BIN" "$*"
 }
 
