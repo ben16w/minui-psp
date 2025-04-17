@@ -1,7 +1,7 @@
 TAG ?= latest
 PAK_NAME := $(shell jq -r .label config.json)
 
-MINUI_PRESENTER_VERSION := 0.7.0
+MINUI_POWER_CONTROL_VERSION := 1.0.0
 
 clean:
 	rm -f bin/*/handle-power-button
@@ -10,7 +10,9 @@ build: bin/minui-power-control
 	@echo "Build complete"
 
 bin/minui-power-control:
-	@echo "Building minui-power-control"
+	mkdir -p bin
+	curl -f -o bin/minui-power-control -sSL https://github.com/ben16w/minui-power-control/releases/download/$(MINUI_POWER_CONTROL_VERSION)/minui-power-control
+	chmod +x bin/minui-power-control
 
 release: build
 	mkdir -p dist

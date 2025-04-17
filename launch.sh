@@ -64,7 +64,6 @@ main() {
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
     minui-power-control "$PPSSPP_BIN" &
-
     "$PPSSPP_BIN" "$*"
 }
 
