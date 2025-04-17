@@ -6,10 +6,10 @@ MINUI_PRESENTER_VERSION := 0.7.0
 clean:
 	rm -f bin/*/handle-power-button
 
-build: minui-power-control
+build: bin/minui-power-control
 	@echo "Build complete"
 
-minui-power-control:
+bin/minui-power-control:
 	@echo "Building minui-power-control"
 
 release: build

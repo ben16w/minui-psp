@@ -42,7 +42,6 @@ cleanup() {
 
     umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
     umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
-
 }
 
 main() {
