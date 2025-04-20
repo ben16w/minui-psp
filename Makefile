@@ -4,8 +4,7 @@ PAK_NAME := $(shell jq -r .label config.json)
 MINUI_POWER_CONTROL_VERSION := 1.1.0
 
 clean:
-	rm -f bin/*/handle-power-button
-	rm -f bin/*/minui-presenter
+	rm -f bin/minui-power-control
 
 build: bin/minui-power-control
 	@echo "Build complete"
