@@ -10,7 +10,7 @@ exec 2>&1
 
 echo "$0" "$@"
 cd "$PAK_DIR" || exit 1
-mkdir -p "$USERDATA_PATH/$PAK_NAME"
+mkdir -p "$USERDATA_PATH/PSP-ppsspp"
 
 architecture=arm
 if uname -m | grep -q '64'; then
