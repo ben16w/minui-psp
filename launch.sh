@@ -10,17 +10,18 @@ exec 2>&1
 
 echo "$0" "$@"
 cd "$PAK_DIR" || exit 1
-mkdir -p "$USERDATA_PATH/$PAK_NAME"
+mkdir -p "$USERDATA_PATH/PSP-ppsspp"
 
 architecture=arm
 if uname -m | grep -q '64'; then
     architecture=arm64
 fi
 
-export EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
 export PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak"
-export HOME="$EMU_DIR"
+export EMU_DIR="$SDCARD_PATH/Emus/$PLATFORM/PSP.pak/PPSSPPSDL"
+
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
+export HOME="$EMU_DIR"
 
 PPSSPP_BIN="PPSSPPSDL"
 

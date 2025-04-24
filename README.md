@@ -1,4 +1,4 @@
-# minui-psp
+# MinUI PSP
 
 A [MinUI](https://github.com/shauninman/MinUI) and [NextUI](https://github.com/LoveRetro/NextUI) Emu Pak for PSP, wrapping the standalone PPSSPP emulator.
 
@@ -29,14 +29,7 @@ Note: The `<PLATFORM>` folder name is based on the name of your device. For exam
 
 ## Deep Sleep & Shutdown
 
-Deep sleep is supported on NextUI and MinUI devices which have it enabled. Clicking the power button will immediately put the device into deep sleep. Clicking the power button again will wake the device up and resume the game.
-
-The device can also be shut down by pressing and holding the power button for 2 seconds. **Warning**: Currently this will **NOT** save the game, and you will lose any progress made since the last save. Also, the game will not be resumed when the device is turned back on.
-
-### Known Issues
-
-- When resuming from deep sleep, the Wi-Fi may not reconnect.
-- When resuming from deep sleep, if the brightness is set to 0, the screen will not turn on. This can be fixed by changing the brightness.
+Deep sleep is supported on compatible devices. Click the power button to enter deep sleep. Click again to resume the game. To shut down, hold the power button for 2 seconds. **Note:** Shutdown does not save or resume the game and any unsaved progress will be lost. For more information and issues, see [MinUI Power Control](https://github.com/ben16w/minui-power-control).
 
 ## Saves & States
 
