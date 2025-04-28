@@ -2,7 +2,7 @@
     "name": "PSP",
     "version": "2.1.1",
     "type": "EMU",
-    "description": "A Pak for PSP, wrapping the standalone PPSSPP emulator.",
+    "description": "A Emu Pak for PSP, wrapping the standalone PPSSPP emulator.",
     "author": "ben16w",
     "repo_url": "https://github.com/ben16w/minui-psp/tree/pak",
     "release_filename": "PSP.pak.zip",
