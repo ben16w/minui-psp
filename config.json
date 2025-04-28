@@ -1,8 +1,0 @@
-{
-    "label": "PSP",
-    "launch": "launch.sh",
-    "description": "Runs PPSSPP in standalone mode for the specified rom.",
-    "platforms": [
-        "tg5040"
-    ]
-}
