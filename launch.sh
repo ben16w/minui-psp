@@ -17,33 +17,35 @@ if uname -m | grep -q '64'; then
     architecture=arm64
 fi
 
-# Dinamic .PAK name that allow the user to change the name if required
 export PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/$PAK_NAME.pak"
 export EMU_DIR="$PAK_DIR/PPSSPPSDL"
 
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
 export HOME="$EMU_DIR"
 
-# Detect Trimui model (Brick or Smart Pro)
-TRIMUI_MODEL=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
+PPSSPP_BIN="PPSSPPSDL"
+PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
-if [ "$TRIMUI_MODEL" = "Trimui Brick" ]; then
-    PPSSPP_BIN="PPSSPPSDL-tg3040"
-    	AspectRatio_New="0.848000"
-else
-    PPSSPP_BIN="PPSSPPSDL-tg5040"
-    	AspectRatio_New="1.000000"
-fi
+config_aspect_ratio() {
+    # Detect Trimui model (Brick or Smart Pro)
+    TRIMUI_MODEL=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
 
-configuration() {
-    INI_FILE="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
-    mkdir -p "$(dirname "$INI_FILE")"
+    if [ "$TRIMUI_MODEL" = "Trimui Brick" ]; then
+        NewAspectRatio="0.848000"
+    else
+        NewAspectRatio="1.000000"
+    fi
 
-    if [ -n "$AspectRatio_New" ]; then
-        if grep -q ^DisplayAspectRatio "$INI_FILE"; then
-            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $AspectRatio_New/" "$INI_FILE"
+    if [ ! -f "$PPSSPP_INI" ]; then
+        echo "Error: $PPSSPP_INI not found."
+        exit 1
+    fi
+
+    if [ -n "$NewAspectRatio" ]; then
+        if grep -q ^DisplayAspectRatio "$PPSSPP_INI"; then
+            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $NewAspectRatio/" "$PPSSPP_INI"
         else
-            echo "DisplayAspectRatio = $AspectRatio_New" >> "$INI_FILE"
+            echo "DisplayAspectRatio = $NewAspectRatio" >> "$PPSSPP_INI"
         fi
     fi
 }
@@ -87,8 +89,8 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    # Apply dynamic configuration
-    configuration
+    # Apply dynamic configuration for aspect ratio
+    config_aspect_ratio
 
     # Launch emulator
     minui-power-control "$PPSSPP_BIN" &
