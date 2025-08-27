@@ -26,14 +26,14 @@ export HOME="$EMU_DIR"
 PPSSPP_BIN="PPSSPPSDL"
 PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
-config_aspect_ratio() {
+configure_aspect_ratio() {
     # Detect Trimui model (Brick or Smart Pro)
-    TRIMUI_MODEL=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
+    trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
 
-    if [ "$TRIMUI_MODEL" = "Trimui Brick" ]; then
-        NewAspectRatio="0.848000"
+    if [ "$trimui_model" = "Trimui Brick" ]; then
+        new_aspect_ratio="0.848000"
     else
-        NewAspectRatio="1.000000"
+        new_aspect_ratio="1.000000"
     fi
 
     if [ ! -f "$PPSSPP_INI" ]; then
@@ -41,11 +41,11 @@ config_aspect_ratio() {
         exit 1
     fi
 
-    if [ -n "$NewAspectRatio" ]; then
+    if [ -n "$new_aspect_ratio" ]; then
         if grep -q ^DisplayAspectRatio "$PPSSPP_INI"; then
-            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $NewAspectRatio/" "$PPSSPP_INI"
+            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $new_aspect_ratio/" "$PPSSPP_INI"
         else
-            echo "DisplayAspectRatio = $NewAspectRatio" >> "$PPSSPP_INI"
+            echo "DisplayAspectRatio = $new_aspect_ratio" >> "$PPSSPP_INI"
         fi
     fi
 }
@@ -89,8 +89,8 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    # Apply dynamic configuration for aspect ratio
-    config_aspect_ratio
+    # Apply dynamic configuration of aspect ratio
+    configure_aspect_ratio
 
     # Launch emulator
     minui-power-control "$PPSSPP_BIN" &
