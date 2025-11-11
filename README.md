@@ -40,6 +40,19 @@ Deep sleep is supported on compatible devices. Click the power button to enter d
 - Save states are stored in the `/.userdata/shared/PSP-ppsspp/` directory.
 - Game saves are stored in the `/Saves/PSP/` directory.
 
+
+## Configuration & TEXTURES directories
+
+PPSSPP's per-pak configuration directory is located at:
+
+- `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/`
+
+Custom texture packs should be placed in the TEXTURES directory at:
+
+- `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/PSP/TEXTURES/`
+
+Create the `TEXTURES` folder if it does not exist.
+
 ## Thanks
 
 - [hrydgard](https://github.com/hrydgard) for developing [PPSSPP](https://github.com/hrydgard/ppsspp) and related projects.
