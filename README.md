@@ -40,6 +40,16 @@ Deep sleep is supported on compatible devices. Click the power button to enter d
 - Save states are stored in the `/.userdata/shared/PSP-ppsspp/` directory.
 - Game saves are stored in the `/Saves/PSP/` directory.
 
+
+## PPSSPP Configuration
+
+The PPSSPP configuration directory is located at `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/`. This directory contains:
+
+- **TEXTURES directory**: `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/PSP/TEXTURES/` - Place custom texture packs here for texture replacement/modding.
+- **SYSTEM directory**: Contains configuration files like `ppsspp.ini` and `controls.ini`.
+
+Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for TrimUI Brick).
+
 ## Thanks
 
 - [hrydgard](https://github.com/hrydgard) for developing [PPSSPP](https://github.com/hrydgard/ppsspp) and related projects.
