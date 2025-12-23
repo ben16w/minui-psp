@@ -40,7 +40,6 @@ Deep sleep is supported on compatible devices. Click the power button to enter d
 - Save states are stored in the `/.userdata/shared/PSP-ppsspp/` directory.
 - Game saves are stored in the `/Saves/PSP/` directory.
 
-
 ## PPSSPP Configuration
 
 The PPSSPP configuration directory is located at `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/`. This directory contains:
@@ -49,6 +48,10 @@ The PPSSPP configuration directory is located at `/Emus/<PLATFORM>/PSP.pak/PPSSP
 - **SYSTEM directory**: Contains configuration files like `ppsspp.ini` and `controls.ini`.
 
 Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for TrimUI Brick).
+
+## Aspect Ratio
+
+The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable the changes create a file named `no-aspect` in `/.userdata/<PLATFORM>/PSP-ppsspp/` to force the default aspect ratio of `1.000000` and skip device-based changes.
 
 ## Thanks
 
