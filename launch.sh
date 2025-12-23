@@ -27,13 +27,19 @@ PPSSPP_BIN="PPSSPPSDL"
 PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
 configure_aspect_ratio() {
-    # Detect Trimui model (Brick or Smart Pro)
-    trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
-
-    if [ "$trimui_model" = "Trimui Brick" ]; then
-        new_aspect_ratio="0.848000"
-    else
+    # Allow users to disable dynamic aspect ratio changes
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-aspect" ]; then
+        echo "Aspect ratio changes disabled via no-aspect flag."
         new_aspect_ratio="1.000000"
+    else
+        # Detect Trimui model (Brick or Smart Pro)
+        trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
+
+        if [ "$trimui_model" = "Trimui Brick" ]; then
+            new_aspect_ratio="0.848000"
+        else
+            new_aspect_ratio="1.000000"
+        fi
     fi
 
     if [ ! -f "$PPSSPP_INI" ]; then
