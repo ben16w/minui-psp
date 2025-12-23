@@ -53,6 +53,10 @@ Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for T
 
 The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable the changes create a file named `no-aspect` in `/.userdata/<PLATFORM>/PSP-ppsspp/` to force the default aspect ratio of `1.000000` and skip device-based changes.
 
+## Skip Buffer Effects
+
+This option can be found under Settings > Graphics > Speed Hacks > Skip buffer effects. Use it as a last‑resort speed boost for demanding games. It can break transparency/lighting or even cause black screens. It's best to toggle it per game as needed.
+
 ## Thanks
 
 - [hrydgard](https://github.com/hrydgard) for developing [PPSSPP](https://github.com/hrydgard/ppsspp) and related projects.
