@@ -40,6 +40,23 @@ Deep sleep is supported on compatible devices. Click the power button to enter d
 - Save states are stored in the `/.userdata/shared/PSP-ppsspp/` directory.
 - Game saves are stored in the `/Saves/PSP/` directory.
 
+### USB Save Backups
+
+You can back up your PSP saves and states to a USB drive without leaving MinUI.
+
+1. Plug in a USB drive. If the system does not auto-detect the mount path, create a file at `/.userdata/PSP-ppsspp/usb_mount_path` containing the absolute path to the USB mount point.
+2. Run the launcher with the `backup-saves` command:
+   ```
+   /Emus/<PLATFORM>/PSP.pak/launch.sh backup-saves
+   ```
+   To back up to a specific path (useful for testing), pass it as an argument:
+   ```
+   /Emus/<PLATFORM>/PSP.pak/launch.sh backup-saves /media/usb0
+   ```
+3. Backups are stored in `PSP_Backups/<timestamp>/` with separate `Saves/` and `States/` folders.
+
+The backup command can also be triggered from another MinUI launcher button by setting `params` to `backup-saves`.
+
 ## PPSSPP Configuration
 
 The PPSSPP configuration directory is located at `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/`. This directory contains:
