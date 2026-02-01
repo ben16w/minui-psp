@@ -143,9 +143,6 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    # Set aspect ratio (pass desired ratio as parameter)
-    set_aspect_ratio "1.000000"
-
     # Launch emulator
     minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
     "${PPSSPP_BIN}_${PLATFORM}" "$*"
