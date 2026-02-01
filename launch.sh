@@ -21,9 +21,8 @@ export PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/$PAK_NAME.pak"
 export EMU_DIR="$PAK_DIR/PPSSPP"
 
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
-export HOME="$EMU_DIR"
-
-export LD_LIBRARY_PATH=./:/mnt/SDCARD:/mnt/SDCARD/lib:/mnt/UDISK:/usr/trimui/lib/:/usr/miyoo/lib:/customer/lib/:/config/lib/:/lib:/usr/lib::/mnt/SDCARD/Emus/PPSSPP
+export HOME="$USERDATA_PATH"
+export LD_LIBRARY_PATH="$PAK_DIR/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
 
 PPSSPP_BIN="PPSSPPSDL"
