@@ -148,7 +148,7 @@ main() {
 
     # Launch emulator
     minui-power-control "$PPSSPP_BIN" &
-    "$PPSSPP_BIN" "$*"
+    "$PPSSPP_BIN_$PLATFORM" "$*"
 }
 
 main "$@"
