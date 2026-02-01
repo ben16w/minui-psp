@@ -10,7 +10,8 @@
     "BRICK": ".github/resources/banner.png"
   },
   "platforms": [
-    "tg5040"
+    "tg5040",
+    "tg5050"
   ],
   "update_ignore": [
     "PPSSPPSDL/.config/ppsspp/PSP/SYSTEM/controls.ini",
