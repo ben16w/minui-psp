@@ -51,7 +51,7 @@ Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for T
 
 ## Aspect Ratio
 
-The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable the changes create a file named `no-aspect` in `/.userdata/<PLATFORM>/PSP-ppsspp/` to force the default aspect ratio of `1.000000` and skip device-based changes.
+The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable automatic configuration changes, create a file named `no-config-changes` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. This will prevent the pak from modifying aspect ratio and other configuration settings.
 
 ## Skip Buffer Effects
 

@@ -23,23 +23,19 @@ export EMU_DIR="$PAK_DIR/PPSSPP"
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
 export HOME="$EMU_DIR"
 
+export LD_LIBRARY_PATH=./:/mnt/SDCARD:/mnt/SDCARD/lib:/mnt/UDISK:/usr/trimui/lib/:/usr/miyoo/lib:/customer/lib/:/config/lib/:/lib:/usr/lib::/mnt/SDCARD/Emus/PPSSPP
+export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
+
 PPSSPP_BIN="PPSSPPSDL"
 PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
-configure_aspect_ratio() {
-    # Allow users to disable dynamic aspect ratio changes
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-aspect" ]; then
-        echo "Aspect ratio changes disabled via no-aspect flag."
-        new_aspect_ratio="1.000000"
-    else
-        # Detect Trimui model (Brick or Smart Pro)
-        trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
-
-        if [ "$trimui_model" = "Trimui Brick" ]; then
-            new_aspect_ratio="0.848000"
-        else
-            new_aspect_ratio="1.000000"
-        fi
+set_aspect_ratio() {
+    aspect_ratio="$1"
+    
+    # Allow users to disable config changes
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
+        echo "Config changes disabled via no-config-changes flag."
+        return
     fi
 
     if [ ! -f "$PPSSPP_INI" ]; then
@@ -47,11 +43,11 @@ configure_aspect_ratio() {
         exit 1
     fi
 
-    if [ -n "$new_aspect_ratio" ]; then
+    if [ -n "$aspect_ratio" ]; then
         if grep -q ^DisplayAspectRatio "$PPSSPP_INI"; then
-            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $new_aspect_ratio/" "$PPSSPP_INI"
+            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $aspect_ratio/" "$PPSSPP_INI"
         else
-            echo "DisplayAspectRatio = $new_aspect_ratio" >> "$PPSSPP_INI"
+            echo "DisplayAspectRatio = $aspect_ratio" >> "$PPSSPP_INI"
         fi
     fi
 }
@@ -95,8 +91,8 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    # Apply dynamic configuration of aspect ratio
-    configure_aspect_ratio
+    # Set aspect ratio (pass desired ratio as parameter)
+    set_aspect_ratio "1.000000"
 
     # Launch emulator
     minui-power-control "$PPSSPP_BIN" &
