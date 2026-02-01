@@ -28,8 +28,9 @@ export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
 PPSSPP_BIN="PPSSPPSDL"
 PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
-set_aspect_ratio() {
-    aspect_ratio="$1"
+update_ppsspp_setting() {
+    setting_name="$1"
+    setting_value="$2"
     
     # Allow users to disable config changes
     if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
@@ -42,12 +43,10 @@ set_aspect_ratio() {
         exit 1
     fi
 
-    if [ -n "$aspect_ratio" ]; then
-        if grep -q ^DisplayAspectRatio "$PPSSPP_INI"; then
-            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $aspect_ratio/" "$PPSSPP_INI"
-        else
-            echo "DisplayAspectRatio = $aspect_ratio" >> "$PPSSPP_INI"
-        fi
+    if grep -q "^${setting_name}" "$PPSSPP_INI"; then
+        sed -i "s/^${setting_name} *= *.*/${setting_name} = ${setting_value}/" "$PPSSPP_INI"
+    else
+        echo "Setting '$setting_name' not found in ini."
     fi
 }
 
@@ -106,15 +105,21 @@ main() {
 
     if [ "$PLATFORM" = "tg3040" ] && [ -z "$DEVICE" ]; then
         export PLATFORM="tg5040"
-        set_aspect_ratio "0.848000"
+        update_ppsspp_setting "DisplayAspectRatio" "0.848000"
+        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        update_ppsspp_setting "AudioDevice" ""
         save_cpu_settings 0
         set_cpu_settings 0 ondemand 1608000 1800000
     elif [ "$PLATFORM" = "tg5040" ]; then
-        set_aspect_ratio "1.000000"
+        update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        update_ppsspp_setting "AudioDevice" ""
         save_cpu_settings 0
         set_cpu_settings 0 ondemand 1608000 1800000
     elif [ "$PLATFORM" = "tg5050" ]; then
-        set_aspect_ratio "1.000000"
+        update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+        update_ppsspp_setting "GraphicsBackend" "3 (VULKAN)"
+        update_ppsspp_setting "AudioDevice" "audiocodec,"
         save_cpu_settings 0
         save_cpu_settings 4
         set_cpu_settings 0 ondemand 1416000 1416000
