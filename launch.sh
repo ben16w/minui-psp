@@ -107,19 +107,16 @@ main() {
         export PLATFORM="tg5040"
         update_ppsspp_setting "DisplayAspectRatio" "0.848000"
         update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
-        update_ppsspp_setting "AudioDevice" ""
         save_cpu_settings 0
         set_cpu_settings 0 ondemand 1608000 1800000
     elif [ "$PLATFORM" = "tg5040" ]; then
         update_ppsspp_setting "DisplayAspectRatio" "1.000000"
         update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
-        update_ppsspp_setting "AudioDevice" ""
         save_cpu_settings 0
         set_cpu_settings 0 ondemand 1608000 1800000
     elif [ "$PLATFORM" = "tg5050" ]; then
         update_ppsspp_setting "DisplayAspectRatio" "1.000000"
         update_ppsspp_setting "GraphicsBackend" "3 (VULKAN)"
-        update_ppsspp_setting "AudioDevice" "audiocodec,"
         save_cpu_settings 0
         save_cpu_settings 4
         set_cpu_settings 0 ondemand 1416000 1416000
