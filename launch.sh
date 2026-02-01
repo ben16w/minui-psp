@@ -147,8 +147,8 @@ main() {
     set_aspect_ratio "1.000000"
 
     # Launch emulator
-    minui-power-control "$PPSSPP_BIN" &
-    "$PPSSPP_BIN_$PLATFORM" "$*"
+    minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
+    "${PPSSPP_BIN}_${PLATFORM}" "$*"
 }
 
 main "$@"
