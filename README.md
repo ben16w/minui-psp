@@ -22,10 +22,6 @@ The pak may work on other platforms and devices, but it has not been tested on t
 
 Note: The `<PLATFORM>` folder name is based on the name of your device. For example, if you are using a TrimUI Brick, the folder is `tg5040`.
 
-## Emulator Version
-
-This pak currently contains PPSSPP version **1.19**.
-
 ## Extra Controls
 
 - `Menu` - Open the PPSSPP menu.
