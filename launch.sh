@@ -21,12 +21,22 @@ export PAK_DIR="$SDCARD_PATH/Emus/$PLATFORM/$PAK_NAME.pak"
 export EMU_DIR="$PAK_DIR/PPSSPP"
 
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
-export HOME="$USERDATA_PATH"
+export HOME="$EMU_DIR"
 export LD_LIBRARY_PATH="$PAK_DIR/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
 
 PPSSPP_BIN="PPSSPPSDL"
 PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
+
+cleanup() {
+    rm -f /tmp/stay_awake
+    
+    restore_cpu_settings 0
+    restore_cpu_settings 4
+
+    umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
+    umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
+}
 
 update_ppsspp_setting() {
     setting_name="$1"
@@ -89,16 +99,6 @@ set_cpu_settings() {
     echo "$max_freq" >"${cpu_path}/scaling_max_freq"
 }
 
-cleanup() {
-    rm -f /tmp/stay_awake
-    
-    restore_cpu_settings 0
-    restore_cpu_settings 4
-
-    umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
-    umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
-}
-
 main() {
     echo "1" >/tmp/stay_awake
     trap "cleanup" EXIT INT TERM HUP QUIT
@@ -122,7 +122,6 @@ main() {
         set_cpu_settings 0 ondemand 1416000 1416000
         set_cpu_settings 4 performance 1992000 2160000
     fi
-
 
     if ! command -v minui-power-control >/dev/null 2>&1; then
         show_message "Minui-power-control not found." 3
