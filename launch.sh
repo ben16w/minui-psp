@@ -22,24 +22,30 @@ export EMU_DIR="$PAK_DIR/PPSSPP"
 
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
 export HOME="$EMU_DIR"
+export LD_LIBRARY_PATH="$PAK_DIR/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
+export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
 
 PPSSPP_BIN="PPSSPPSDL"
 PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
-configure_aspect_ratio() {
-    # Allow users to disable dynamic aspect ratio changes
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-aspect" ]; then
-        echo "Aspect ratio changes disabled via no-aspect flag."
-        new_aspect_ratio="1.000000"
-    else
-        # Detect Trimui model (Brick or Smart Pro)
-        trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
+cleanup() {
+    rm -f /tmp/stay_awake
+    
+    restore_cpu_settings 0
+    restore_cpu_settings 4
 
-        if [ "$trimui_model" = "Trimui Brick" ]; then
-            new_aspect_ratio="0.848000"
-        else
-            new_aspect_ratio="1.000000"
-        fi
+    umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
+    umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
+}
+
+update_ppsspp_setting() {
+    setting_name="$1"
+    setting_value="$2"
+    
+    # Allow users to disable config changes
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
+        echo "Config changes disabled via no-config-changes flag."
+        return
     fi
 
     if [ ! -f "$PPSSPP_INI" ]; then
@@ -47,45 +53,88 @@ configure_aspect_ratio() {
         exit 1
     fi
 
-    if [ -n "$new_aspect_ratio" ]; then
-        if grep -q ^DisplayAspectRatio "$PPSSPP_INI"; then
-            sed -i "s/^DisplayAspectRatio *= *.*/DisplayAspectRatio = $new_aspect_ratio/" "$PPSSPP_INI"
-        else
-            echo "DisplayAspectRatio = $new_aspect_ratio" >> "$PPSSPP_INI"
-        fi
+    if grep -q "^${setting_name}" "$PPSSPP_INI"; then
+        sed -i "s/^${setting_name} *= *.*/${setting_name} = ${setting_value}/" "$PPSSPP_INI"
+    else
+        echo "Setting '$setting_name' not found in ini."
     fi
 }
 
-cleanup() {
-    rm -f /tmp/stay_awake
+save_cpu_settings() {
+    cpu_num="$1"
+    cpu_path="/sys/devices/system/cpu/cpu${cpu_num}/cpufreq"
+    
+    cat "${cpu_path}/scaling_governor" >"$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt"
+    cat "${cpu_path}/scaling_min_freq" >"$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_min_freq.txt"
+    cat "${cpu_path}/scaling_max_freq" >"$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_max_freq.txt"
+}
 
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/cpu_governor.txt" ]; then
-        cat "$USERDATA_PATH/PSP-ppsspp/cpu_governor.txt" >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-        rm -f "$USERDATA_PATH/PSP-ppsspp/cpu_governor.txt"
+restore_cpu_settings() {
+    cpu_num="$1"
+    cpu_path="/sys/devices/system/cpu/cpu${cpu_num}/cpufreq"
+    
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt" ]; then
+        cat "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt" >"${cpu_path}/scaling_governor"
+        rm -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt"
     fi
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/cpu_min_freq.txt" ]; then
-        cat "$USERDATA_PATH/PSP-ppsspp/cpu_min_freq.txt" >/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
-        rm -f "$USERDATA_PATH/PSP-ppsspp/cpu_min_freq.txt"
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_min_freq.txt" ]; then
+        cat "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_min_freq.txt" >"${cpu_path}/scaling_min_freq"
+        rm -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_min_freq.txt"
     fi
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt" ]; then
-        cat "$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt" >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
-        rm -f "$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt"
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_max_freq.txt" ]; then
+        cat "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_max_freq.txt" >"${cpu_path}/scaling_max_freq"
+        rm -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_max_freq.txt"
     fi
+}
 
-    umount "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA" || true
-    umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
+set_cpu_settings() {
+    cpu_num="$1"
+    governor="$2"
+    min_freq="$3"
+    max_freq="$4"
+    cpu_path="/sys/devices/system/cpu/cpu${cpu_num}/cpufreq"
+    
+    echo "$governor" >"${cpu_path}/scaling_governor"
+    echo "$min_freq" >"${cpu_path}/scaling_min_freq"
+    echo "$max_freq" >"${cpu_path}/scaling_max_freq"
 }
 
 main() {
     echo "1" >/tmp/stay_awake
     trap "cleanup" EXIT INT TERM HUP QUIT
 
-    cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor >"$USERDATA_PATH/PSP-ppsspp/cpu_governor.txt"
-    cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq >"$USERDATA_PATH/PSP-ppsspp/cpu_min_freq.txt"
-    cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq >"$USERDATA_PATH/PSP-ppsspp/cpu_max_freq.txt"
-    echo ondemand >/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-    echo 1608000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
-    echo 1800000 >/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    if [ "$PLATFORM" = "tg3040" ] && [ -z "$DEVICE" ]; then
+        export PLATFORM="tg5040"
+        update_ppsspp_setting "DisplayAspectRatio" "0.848000"
+        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        save_cpu_settings 0
+        set_cpu_settings 0 ondemand 1608000 1800000
+    elif [ "$PLATFORM" = "tg5040" ]; then
+        update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        save_cpu_settings 0
+        set_cpu_settings 0 ondemand 1608000 1800000
+    elif [ "$PLATFORM" = "tg5050" ]; then
+        update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+        update_ppsspp_setting "GraphicsBackend" "3 (VULKAN)"
+        save_cpu_settings 0
+        save_cpu_settings 4
+        set_cpu_settings 0 ondemand 1416000 1416000
+        set_cpu_settings 4 performance 1992000 2160000
+    fi
+
+    if ! command -v minui-power-control >/dev/null 2>&1; then
+        show_message "Minui-power-control not found." 3
+        exit 1
+    fi
+
+    chmod +x "$PAK_DIR/bin/minui-power-control"
+
+    allowed_platforms="tg5040 tg5050"
+    if ! echo "$allowed_platforms" | grep -q "$PLATFORM"; then
+        echo "$PLATFORM is not a supported platform."
+        exit 1
+    fi
 
     mkdir -p "$SDCARD_PATH/Saves/PSP"
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA"
@@ -95,12 +144,9 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
-    # Apply dynamic configuration of aspect ratio
-    configure_aspect_ratio
-
     # Launch emulator
-    minui-power-control "$PPSSPP_BIN" &
-    "$PPSSPP_BIN" "$*"
+    minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
+    "${PPSSPP_BIN}_${PLATFORM}" "$*"
 }
 
 main "$@"
