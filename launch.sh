@@ -105,15 +105,22 @@ main() {
 
     if [ "$PLATFORM" = "tg3040" ] && [ -z "$DEVICE" ]; then
         export PLATFORM="tg5040"
-        update_ppsspp_setting "DisplayAspectRatio" "0.848000"
+    fi
+
+    if [ "$PLATFORM" = "tg5040" ]; then
+
+        # Detect Trimui model (Brick or Smart Pro)
+        trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
+        if [ "$trimui_model" = "Trimui Brick" ]; then
+            update_ppsspp_setting "DisplayAspectRatio" "0.848000"
+        else
+            update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+        fi
+
         update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
         save_cpu_settings 0
         set_cpu_settings 0 ondemand 1608000 1800000
-    elif [ "$PLATFORM" = "tg5040" ]; then
-        update_ppsspp_setting "DisplayAspectRatio" "1.000000"
-        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
-        save_cpu_settings 0
-        set_cpu_settings 0 ondemand 1608000 1800000
+
     elif [ "$PLATFORM" = "tg5050" ]; then
         update_ppsspp_setting "DisplayAspectRatio" "1.000000"
         update_ppsspp_setting "GraphicsBackend" "3 (VULKAN)"
