@@ -7,6 +7,7 @@ A [MinUI](https://github.com/shauninman/MinUI) and [NextUI](https://github.com/L
 This pak is designed and tested on the following MinUI Platforms and devices:
 
 - `tg5040`: Trimui Brick (formerly `tg3040`), Trimui Smart Pro
+- `tg5050`: Trimui Smart Pro S
 
 The pak may work on other platforms and devices, but it has not been tested on them.
 
