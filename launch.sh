@@ -22,7 +22,7 @@ export EMU_DIR="$PAK_DIR/PPSSPP"
 
 export PATH="$EMU_DIR:$PAK_DIR/bin/$architecture:$PAK_DIR/bin/$PLATFORM:$PAK_DIR/bin:$PATH"
 export HOME="$EMU_DIR"
-export LD_LIBRARY_PATH="$PAK_DIR/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$EMU_DIR:$PAK_DIR/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
 
 PPSSPP_BIN="PPSSPPSDL"
@@ -118,6 +118,9 @@ main() {
         fi
 
         update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        export SDL_VIDEODRIVER=mali
+        setalpha 0
+        rm -f "$EMU_DIR/.config/ppsspp/PSP/SYSTEM/FailedGraphicsBackends.txt"
         save_cpu_settings 0
         set_cpu_settings 0 ondemand 1608000 1800000
 
@@ -153,7 +156,7 @@ main() {
 
     # Launch emulator
     minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
-    "${PPSSPP_BIN}_${PLATFORM}" "$*"
+    "${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
 }
 
 main "$@"
