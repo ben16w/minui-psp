@@ -119,7 +119,7 @@ main() {
 
         update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
         export SDL_VIDEODRIVER=mali
-        "$EMU_DIR/setalpha" 0
+        setalpha 0
         rm -f "$EMU_DIR/.config/ppsspp/PSP/SYSTEM/FailedGraphicsBackends.txt"
         save_cpu_settings 0
         set_cpu_settings 0 ondemand 1608000 1800000
