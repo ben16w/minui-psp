@@ -4,13 +4,13 @@ MINUI_POWER_CONTROL_VERSION := 1.1.0
 PPSSPP_RELEASE_URL := https://github.com/spruceUI/PPSSPP-spruce/releases/download/latest
 
 clean:
-	rm -f bin/minui-power-control PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/setalpha
+	rm -f bin/minui-power-control PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/setalpha PPSSPP/libSDL2-2.0.so.0
 
 bump-version:
 	jq '.version = "$(RELEASE_VERSION)"' pak.json > pak.json.tmp
 	mv pak.json.tmp pak.json
 
-build: bin/minui-power-control PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/setalpha
+build: bin/minui-power-control PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/setalpha PPSSPP/libSDL2-2.0.so.0
 	@echo "Build complete"
 
 bin/minui-power-control:
@@ -29,6 +29,9 @@ PPSSPP/PPSSPPSDL_tg5050:
 PPSSPP/setalpha:
 	curl -f -o PPSSPP/setalpha -sSL $(PPSSPP_RELEASE_URL)/setalpha
 	chmod +x PPSSPP/setalpha
+
+PPSSPP/libSDL2-2.0.so.0:
+	curl -f -o PPSSPP/libSDL2-2.0.so.0 -sSL $(PPSSPP_RELEASE_URL)/libSDL2-2.0.so.0
 
 release: build
 	mkdir -p dist
