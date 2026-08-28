@@ -156,7 +156,7 @@ main() {
 
     # Launch emulator
     minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
-    "${PPSSPP_BIN}_${PLATFORM}" "$*"
+    "${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
 }
 
 main "$@"
