@@ -64,6 +64,6 @@ This option can be found under Settings > Graphics > Speed Hacks > Skip buffer e
 
 ## License
 
-This project uses PPSSPP, which is open-source software. Please refer to the original PPSSPP [LICENSE.TXT](PPSSPPSDL/LICENSE.TXT) file for more details.
+This project uses PPSSPP, which is open-source software. Please refer to the original PPSSPP [LICENSE.TXT](PPSSPP/LICENSE.TXT) file for more details.
 
 The project code which is not part of PPSSPP is licensed under the [MIT License](https://opensource.org/licenses/MIT). See the project [LICENSE](LICENSE) file for more details.
