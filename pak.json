@@ -14,8 +14,8 @@
     "tg5050"
   ],
   "update_ignore": [
-    "PPSSPPSDL/.config/ppsspp/PSP/SYSTEM/controls.ini",
-    "PPSSPPSDL/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
+    "PPSSPP/.config/ppsspp/PSP/SYSTEM/controls.ini",
+    "PPSSPP/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
   ],
   "launch": "launch.sh"
 }
