@@ -3,3 +3,4 @@ bin/setalpha
 PPSSPP/PPSSPPSDL_tg5040
 PPSSPP/PPSSPPSDL_tg5050
 PPSSPP/libSDL2-2.0.so.0
+PPSSPP/libstdc++.so.6
