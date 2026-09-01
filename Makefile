@@ -2,15 +2,16 @@ PAK_NAME := $(shell jq -r .name pak.json)
 
 MINUI_POWER_CONTROL_VERSION := 1.1.0
 PPSSPP_RELEASE_URL := https://github.com/spruceUI/PPSSPP-spruce/releases/download/latest
+SPRUCEOS_PSP_URL := https://raw.githubusercontent.com/spruceUI/spruceOS/main/Emu/PSP
 
 clean:
-	rm -f bin/minui-power-control bin/setalpha PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/libSDL2-2.0.so.0
+	rm -f bin/minui-power-control bin/setalpha PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/libSDL2-2.0.so.0 PPSSPP/libstdc++.so.6
 
 bump-version:
 	jq '.version = "$(RELEASE_VERSION)"' pak.json > pak.json.tmp
 	mv pak.json.tmp pak.json
 
-build: bin/minui-power-control bin/setalpha PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/libSDL2-2.0.so.0
+build: bin/minui-power-control bin/setalpha PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/libSDL2-2.0.so.0 PPSSPP/libstdc++.so.6
 	@echo "Build complete"
 
 bin/minui-power-control:
@@ -32,6 +33,9 @@ bin/setalpha:
 
 PPSSPP/libSDL2-2.0.so.0:
 	curl -f -o PPSSPP/libSDL2-2.0.so.0 -sSL $(PPSSPP_RELEASE_URL)/libSDL2-2.0.so.0
+
+PPSSPP/libstdc++.so.6:
+	curl -f -o PPSSPP/libstdc++.so.6 -sSL $(SPRUCEOS_PSP_URL)/libstdc%2B%2B.so.6
 
 release: build
 	mkdir -p dist
