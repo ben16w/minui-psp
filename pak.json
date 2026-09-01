@@ -1,6 +1,6 @@
 {
   "name": "PSP",
-  "version": "6.0.1",
+  "version": "6.1.0",
   "type": "EMU",
   "description": "A Emu Pak for PSP, wrapping the standalone PPSSPP emulator.",
   "author": "ben16w",
