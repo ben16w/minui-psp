@@ -57,10 +57,10 @@ This option can be found under Settings > Graphics > Speed Hacks > Skip buffer e
 ## Thanks
 
 - [hrydgard](https://github.com/hrydgard) for developing [PPSSPP](https://github.com/hrydgard/ppsspp) and related projects.
-- [spruceUI](https://github.com/spruceUI) team for the [PPSSPP-spruce](https://github.com/spruceUI/PPSSPP-spruce) repo.
-- [Shaun Inman](https://github.com/shauninman) for developing [MinUI](https://github.com/shauninman/MinUI).
+- [spruceUI](https://github.com/spruceUI) team for creating the [PPSSPP-spruce](https://github.com/spruceUI/PPSSPP-spruce) repository.
 - [frysee](https://github.com/frysee) and the rest of the NextUI contributors for developing [NextUI](https://github.com/LoveRetro/NextUI).
-- Also, thank you, [josegonzalez](https://github.com/josegonzalez), for your pak repositories, which this project is based on.
+- [Shaun Inman](https://github.com/shauninman) for developing [MinUI](https://github.com/shauninman/MinUI).
+- Also [josegonzalez](https://github.com/josegonzalez), for their pak repositories, which this project is based on.
 
 ## License
 
