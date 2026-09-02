@@ -30,7 +30,7 @@ PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
 
 cleanup() {
     rm -f /tmp/stay_awake
-    
+
     restore_cpu_settings 0
     restore_cpu_settings 4
 
@@ -41,7 +41,7 @@ cleanup() {
 update_ppsspp_setting() {
     setting_name="$1"
     setting_value="$2"
-    
+
     # Allow users to disable config changes
     if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
         echo "Config changes disabled via no-config-changes flag."
@@ -63,7 +63,7 @@ update_ppsspp_setting() {
 save_cpu_settings() {
     cpu_num="$1"
     cpu_path="/sys/devices/system/cpu/cpu${cpu_num}/cpufreq"
-    
+
     cat "${cpu_path}/scaling_governor" >"$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt"
     cat "${cpu_path}/scaling_min_freq" >"$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_min_freq.txt"
     cat "${cpu_path}/scaling_max_freq" >"$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_max_freq.txt"
@@ -72,7 +72,7 @@ save_cpu_settings() {
 restore_cpu_settings() {
     cpu_num="$1"
     cpu_path="/sys/devices/system/cpu/cpu${cpu_num}/cpufreq"
-    
+
     if [ -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt" ]; then
         cat "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt" >"${cpu_path}/scaling_governor"
         rm -f "$USERDATA_PATH/PSP-ppsspp/cpu${cpu_num}_governor.txt"
@@ -93,7 +93,7 @@ set_cpu_settings() {
     min_freq="$3"
     max_freq="$4"
     cpu_path="/sys/devices/system/cpu/cpu${cpu_num}/cpufreq"
-    
+
     echo "$governor" >"${cpu_path}/scaling_governor"
     echo "$min_freq" >"${cpu_path}/scaling_min_freq"
     echo "$max_freq" >"${cpu_path}/scaling_max_freq"
@@ -107,9 +107,17 @@ main() {
         export PLATFORM="tg5040"
     fi
 
-    if [ "$PLATFORM" = "tg5040" ]; then
+    if [ "$PLATFORM" = "tg4040" ]; then
+        update_ppsspp_setting "DisplayAspectRatio" "0.848000"
+        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        export SDL_VIDEODRIVER=mali
+        setalpha 0
+        rm -f "$EMU_DIR/.config/ppsspp/PSP/SYSTEM/FailedGraphicsBackends.txt"
+        save_cpu_settings 0
+        set_cpu_settings 0 ondemand 1608000 1800000
 
-        # Detect Trimui model (Brick or Smart Pro)
+    elif [ "$PLATFORM" = "tg5040" ]; then
+        # Detect Trimui model to pick the correct aspect ratio for 4:3 devices.
         trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
         if [ "$trimui_model" = "Trimui Brick" ]; then
             update_ppsspp_setting "DisplayAspectRatio" "0.848000"
@@ -140,7 +148,7 @@ main() {
 
     chmod +x "$PAK_DIR/bin/minui-power-control"
 
-    allowed_platforms="tg5040 tg5050"
+    allowed_platforms="tg4040 tg5040 tg5050"
     if ! echo "$allowed_platforms" | grep -q "$PLATFORM"; then
         echo "$PLATFORM is not a supported platform."
         exit 1

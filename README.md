@@ -9,6 +9,8 @@ This pak is designed and tested on the following MinUI Platforms and devices:
 - `tg5040`: Trimui Brick (formerly `tg3040`), Trimui Smart Pro
 - `tg5050`: Trimui Smart Pro S
 
+It also includes support for `tg4040` (Trimui Brick Pro).
+
 The pak may work on other platforms and devices, but it has not been tested on them.
 
 ## Installation
@@ -21,7 +23,7 @@ The pak may work on other platforms and devices, but it has not been tested on t
 6. Create a folder at `/Roms/PlayStation Portable (PSP)` and place your ROMs in this directory.
 7. Unmount your SD Card and insert it into your MinUI device.
 
-Note: The `<PLATFORM>` folder name is based on the name of your device. For example, if you are using a TrimUI Brick, the folder is `tg5040`.
+Note: The `<PLATFORM>` folder name is based on the name of your device. For example, use `tg4040` for TrimUI Brick Pro and `tg5040` for TrimUI Brick.
 
 ## Extra Controls
 
@@ -44,11 +46,11 @@ The PPSSPP configuration directory is located at `/Emus/<PLATFORM>/PSP.pak/PPSSP
 - **TEXTURES directory**: `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/PSP/TEXTURES/` - Place custom texture packs here for texture replacement/modding.
 - **SYSTEM directory**: Contains configuration files like `ppsspp.ini` and `controls.ini`.
 
-Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for TrimUI Brick).
+Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg4040` for TrimUI Brick Pro, `tg5040` for TrimUI Brick).
 
 ## Aspect Ratio
 
-The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable automatic configuration changes, create a file named `no-config-changes` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. This will prevent the pak from modifying aspect ratio and other configuration settings.
+The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick and Trimui Brick Pro it uses `0.848000`, on other supported devices it uses `1.000000`. To disable automatic configuration changes, create a file named `no-config-changes` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. This will prevent the pak from modifying aspect ratio and other configuration settings.
 
 ## Skip Buffer Effects
 

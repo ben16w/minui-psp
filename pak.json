@@ -10,6 +10,7 @@
     "BRICK": ".github/resources/banner.png"
   },
   "platforms": [
+    "tg4040",
     "tg5040",
     "tg5050"
   ],
