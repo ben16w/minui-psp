@@ -1,7 +1,7 @@
 PAK_NAME := $(shell jq -r .name pak.json)
 
 MINUI_POWER_CONTROL_VERSION := 1.1.0
-PPSSPP_RELEASE_URL := https://github.com/spruceUI/PPSSPP-spruce/releases/download/beta-main
+PPSSPP_RELEASE_URL := https://github.com/ben16w/PPSSPP-spruce/releases/download/beta-main
 SPRUCEOS_PSP_URL := https://raw.githubusercontent.com/spruceUI/spruceOS/main/Emu/PSP
 
 clean:
