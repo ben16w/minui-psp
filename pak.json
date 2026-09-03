@@ -14,8 +14,12 @@
     "tg5050"
   ],
   "update_ignore": [
-    "PPSSPP/.config/ppsspp/PSP/SYSTEM/controls.ini",
-    "PPSSPP/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
+    "config/controls-Brick.ini",
+    "config/controls-SmartPro.ini",
+    "config/controls-SmartProS.ini",
+    "config/ppsspp-Brick.ini",
+    "config/ppsspp-SmartPro.ini",
+    "config/ppsspp-SmartProS.ini"
   ],
   "launch": "launch.sh"
 }
