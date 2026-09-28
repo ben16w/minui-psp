@@ -5,13 +5,13 @@ PPSSPP_RELEASE_URL := https://github.com/ben16w/PPSSPP-spruce/releases/download/
 SPRUCEOS_PSP_URL := https://raw.githubusercontent.com/spruceUI/spruceOS/main/Emu/PSP
 
 clean:
-	rm -f bin/minui-power-control bin/setalpha PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/libstdc++.so.6
+	rm -f bin/minui-power-control bin/setalpha bin/zero28-powerd PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/PPSSPPSDL_zero28 PPSSPP/libstdc++.so.6
 
 bump-version:
 	jq '.version = "$(RELEASE_VERSION)"' pak.json > pak.json.tmp
 	mv pak.json.tmp pak.json
 
-build: bin/minui-power-control bin/setalpha PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/libstdc++.so.6
+build: bin/minui-power-control bin/setalpha bin/zero28-powerd PPSSPP/PPSSPPSDL_tg5040 PPSSPP/PPSSPPSDL_tg5050 PPSSPP/PPSSPPSDL_zero28 PPSSPP/libstdc++.so.6
 	@echo "Build complete"
 
 bin/minui-power-control:
@@ -22,6 +22,20 @@ bin/minui-power-control:
 PPSSPP/PPSSPPSDL_tg5040:
 	curl -f -o PPSSPP/PPSSPPSDL_tg5040 -sSL $(PPSSPP_RELEASE_URL)/PPSSPPSDL_TrimUI
 	chmod +x PPSSPP/PPSSPPSDL_tg5040
+
+# The MagicX Mini Zero 28 has the Brick/TSP's A133P and GE8300, so it runs the
+# same PowerVR build; its display rotation and in-game menu stay off unless
+# launch.sh turns them on.
+PPSSPP/PPSSPPSDL_zero28:
+	curl -f -o PPSSPP/PPSSPPSDL_zero28 -sSL $(PPSSPP_RELEASE_URL)/PPSSPPSDL_TrimUI
+	chmod +x PPSSPP/PPSSPPSDL_zero28
+
+# Power button handler for the Zero 28 (zero28/powerd.c). Static, so it runs on
+# MOSS whatever glibc the build host has; the release runner is arm64.
+bin/zero28-powerd: zero28/powerd.c
+	mkdir -p bin
+	$(CC) -O2 -Wall -static -o bin/zero28-powerd zero28/powerd.c
+	strip bin/zero28-powerd
 
 PPSSPP/PPSSPPSDL_tg5050:
 	curl -f -o PPSSPP/PPSSPPSDL_tg5050 -sSL $(PPSSPP_RELEASE_URL)/PPSSPPSDL_SmartProS
