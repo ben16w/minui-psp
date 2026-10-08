@@ -164,8 +164,9 @@ main() {
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
     # Launch emulator
+    cd "$EMU_DIR" || exit 1
     minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
-    "${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
+    "./${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
 }
 
 main "$@"
