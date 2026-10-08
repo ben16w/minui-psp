@@ -11,7 +11,8 @@
   },
   "platforms": [
     "tg5040",
-    "tg5050"
+    "tg5050",
+    "h700"
   ],
   "update_ignore": [
     "PPSSPP/.config/ppsspp/PSP/SYSTEM/controls.ini",
