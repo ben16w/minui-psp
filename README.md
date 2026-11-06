@@ -48,15 +48,15 @@ Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for T
 
 ## Aspect Ratio
 
-The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable automatic configuration changes, create a file named `no-config-changes` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. This will prevent the pak from modifying aspect ratio and other configuration settings.
+The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable automatic configuration changes, create a file named `no-config-changes` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. This will prevent the pak from modifying aspect ratio and other configuration settings. If the aspect ratio or graphics backend setting is missing from the `[Graphics]` section of `ppsspp.ini`, the pak adds it.
 
 ## RetroAchievements
 
 On NextUI, the pak copies the RetroAchievements settings from the NextUI Settings menu into PPSSPP every time a game is launched:
 
 - **Enabled and logged in** in NextUI: RetroAchievements are enabled in PPSSPP with the same username and login token, and NextUI's Hardcore Mode setting is applied to PPSSPP's Hardcore Mode. No separate login inside PPSSPP is needed.
-- **Disabled, or not logged in** in NextUI: RetroAchievements are disabled in PPSSPP and the PPSSPP login token is removed.
-- **MinUI** (no NextUI settings file): PPSSPP's own RetroAchievements settings are left untouched.
+- **Disabled, or not logged in** in NextUI: RetroAchievements are disabled in PPSSPP, and the PPSSPP username and login token are removed.
+- **MinUI** (no NextUI settings file), or a NextUI version without RetroAchievements settings: PPSSPP's own RetroAchievements settings are left untouched.
 
 Notes:
 

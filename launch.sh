@@ -35,6 +35,8 @@ NEXTUI_SETTINGS="$SHARED_USERDATA_PATH/minuisettings.txt"
 
 cleanup() {
     rm -f /tmp/stay_awake
+    # Temp files left behind if a signal interrupted an ini/token write.
+    rm -f "$PPSSPP_INI.tmp.$$" "$PPSSPP_RA_TOKEN_FILE.tmp.$$"
     
     restore_cpu_settings 0
     restore_cpu_settings 4
@@ -43,99 +45,133 @@ cleanup() {
     umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
 }
 
-update_ppsspp_setting() {
-    setting_name="$1"
-    setting_value="$2"
-    
-    # Allow users to disable config changes
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
-        echo "Config changes disabled via no-config-changes flag."
-        return
-    fi
+# Succeeds (and says so) when the user opted out of config changes.
+config_changes_disabled() {
+    [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ] || return 1
+    echo "${1}Config changes disabled via no-config-changes flag."
+}
+
+# Set one or more keys in the [Graphics] section of ppsspp.ini:
+#   update_ppsspp_graphics KEY VALUE [KEY VALUE ...]
+# Missing keys are added to the section.
+update_ppsspp_graphics() {
+    config_changes_disabled && return
 
     if [ ! -f "$PPSSPP_INI" ]; then
         echo "Error: $PPSSPP_INI not found."
         exit 1
     fi
 
-    if grep -q "^${setting_name}" "$PPSSPP_INI"; then
-        sed -i "s/^${setting_name} *= *.*/${setting_name} = ${setting_value}/" "$PPSSPP_INI"
-    else
-        echo "Setting '$setting_name' not found in ini."
-    fi
+    set_ini_values "$PPSSPP_INI" "Graphics" "$@"
 }
 
-# Print the value of a key from NextUI's minuisettings.txt ("key=value" lines;
-# the last occurrence wins, like NextUI's own parser).
-read_nextui_setting() {
-    sed -n "s/^$1=//p" "$NEXTUI_SETTINGS" 2>/dev/null | tail -n 1 | tr -d '\r\n'
-}
-
-# Set "key = value" inside [section] of an ini file. Unlike
-# update_ppsspp_setting this matches the exact key name within the section
-# only, inserts the key (and section) when missing, and passes the value
-# through the environment so no character in it needs escaping.
-set_ini_value() {
+# Set "KEY = VALUE" pairs inside [SECTION] of an ini file in a single pass:
+#   set_ini_values FILE SECTION KEY VALUE [KEY VALUE ...]
+# Keys are matched by exact name within the section only. Missing keys (and
+# the section) are inserted. Values are passed to awk as plain arguments, so
+# no character in them needs escaping. CRLF files keep CRLF line endings.
+# The file is only replaced when its content changes, and only after the new
+# content has been verified to be written completely (a full SD card must
+# not truncate the user's settings).
+set_ini_values() {
     ini_file="$1"
+    ini_section="$2"
+    shift 2
     ini_tmp="$ini_file.tmp.$$"
 
-    INI_SECTION="$2" INI_KEY="$3" INI_VALUE="$4" awk '
+    ini_lines="$(awk -- '
         BEGIN {
-            section = ENVIRON["INI_SECTION"]
-            key = ENVIRON["INI_KEY"]
-            value = ENVIRON["INI_VALUE"]
+            out = ARGV[2]
+            section = ARGV[3]
+            n = 0
+            for (i = 4; i + 1 < ARGC; i += 2) {
+                n++
+                keys[n] = ARGV[i]
+                values[n] = ARGV[i + 1]
+            }
+            for (i = 2; i < ARGC; i++)
+                delete ARGV[i]
+            written = 0
         }
-        function emit() {
-            print key " = " value
-            done = 1
+        function out_line(s) {
+            print s > out
+            written++
+        }
+        # Print the keys of the target section that were not found in it.
+        function emit_missing(   j) {
+            for (j = 1; j <= n; j++)
+                if (!done[j]) {
+                    out_line(keys[j] " = " values[j] eol)
+                    done[j] = 1
+                }
         }
         {
             line = $0
-            sub(/\r$/, "", line)
+            if (sub(/\r$/, "", line) && NR == 1)
+                eol = "\r"
             # Ignore a UTF-8 byte order mark before the first section header.
             if (NR == 1 && index(line, "[") > 1 && index(line, "[") <= 4)
                 line = substr(line, index(line, "["))
 
             if (line ~ /^[ \t]*\[.*\][ \t]*$/) {
-                # Leaving the target section without having seen the key.
-                if (in_section && !done)
-                    emit()
+                # Leaving the target section: add the keys it lacked.
+                if (in_section)
+                    emit_missing()
                 name = line
                 gsub(/^[ \t]*\[|\][ \t]*$/, "", name)
                 in_section = (name == section)
                 if (in_section)
                     seen = 1
-                print
+                out_line($0)
                 next
             }
 
             if (in_section && (eq = index(line, "=")) > 0) {
                 k = substr(line, 1, eq - 1)
                 gsub(/^[ \t]+|[ \t]+$/, "", k)
-                if (k == key) {
-                    if (!done)
-                        emit()
-                    next
-                }
+                for (j = 1; j <= n; j++)
+                    if (k == keys[j]) {
+                        if (!done[j]) {
+                            out_line(keys[j] " = " values[j] eol)
+                            done[j] = 1
+                        }
+                        # Drop duplicates of a managed key.
+                        next
+                    }
             }
-            print
+            out_line($0)
         }
         END {
-            if (in_section && !done)
-                emit()
+            if (in_section)
+                emit_missing()
             if (!seen) {
-                print "[" section "]"
-                emit()
+                out_line("[" section "]" eol)
+                emit_missing()
             }
+            if (close(out) != 0)
+                exit 1
+            print written
         }
-    ' "$ini_file" >"$ini_tmp" && mv -f "$ini_tmp" "$ini_file"
-    status=$?
-    rm -f "$ini_tmp"
-    return $status
-}
+    ' "$ini_file" "$ini_tmp" "$ini_section" "$@")"
+    ini_status=$?
 
-set_achievements_setting() {
-    set_ini_value "$PPSSPP_INI" "Achievements" "$1" "$2"
+    if [ "$ini_status" -eq 0 ] && cmp -s "$ini_tmp" "$ini_file"; then
+        # Nothing changed; leave the file (and its timestamp) alone.
+        rm -f "$ini_tmp"
+        return 0
+    fi
+
+    if [ "$ini_status" -ne 0 ] || [ -z "$ini_lines" ] || [ "$ini_lines" -eq 0 ] ||
+        [ "$(wc -l <"$ini_tmp")" -ne "$ini_lines" ]; then
+        echo "Error: could not write $ini_file (disk full?), leaving it unchanged."
+        rm -f "$ini_tmp"
+        return 1
+    fi
+
+    mv -f "$ini_tmp" "$ini_file" || {
+        rm -f "$ini_tmp"
+        return 1
+    }
 }
 
 # Mirror the RetroAchievements settings from the NextUI settings menu into
@@ -155,11 +191,43 @@ sync_retroachievements() {
     return 0
 }
 
+# Read the RetroAchievements keys from NextUI's minuisettings.txt ("key=value"
+# lines; the last occurrence wins, like NextUI's own parser) in one pass,
+# without spawning any process.
+read_nextui_ra_settings() {
+    cr="$(printf '\r')"
+    ra_enable_set=0
+    ra_enable=""
+    ra_username=""
+    ra_token=""
+    ra_authenticated=""
+    ra_hardcore=""
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%"$cr"}"
+        case "$line" in
+        raEnable=*)
+            ra_enable="${line#*=}"
+            ra_enable_set=1
+            ;;
+        raUsername=*) ra_username="${line#*=}" ;;
+        raToken=*) ra_token="${line#*=}" ;;
+        raAuthenticated=*) ra_authenticated="${line#*=}" ;;
+        raHardcoreMode=*) ra_hardcore="${line#*=}" ;;
+        esac
+    done <"$NEXTUI_SETTINGS"
+}
+
+# Turn RetroAchievements off in PPSSPP and log the previous account out.
+disable_retroachievements() {
+    echo "RetroAchievements: $1, disabling in PPSSPP."
+    set_ini_values "$PPSSPP_INI" "Achievements" \
+        "AchievementsEnable" "False" \
+        "AchievementsUserName" ""
+    rm -f "$PPSSPP_RA_TOKEN_FILE"
+}
+
 _sync_retroachievements() {
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
-        echo "RetroAchievements: config changes disabled via no-config-changes flag."
-        return
-    fi
+    config_changes_disabled "RetroAchievements: " && return
     if [ -f "$USERDATA_PATH/PSP-ppsspp/no-ra-sync" ]; then
         echo "RetroAchievements: sync disabled via no-ra-sync flag."
         return
@@ -173,68 +241,73 @@ _sync_retroachievements() {
         return
     fi
 
-    ra_enable="$(read_nextui_setting raEnable)"
-    ra_username="$(read_nextui_setting raUsername)"
-    ra_token="$(read_nextui_setting raToken)"
-    ra_authenticated="$(read_nextui_setting raAuthenticated)"
-    ra_hardcore="$(read_nextui_setting raHardcoreMode)"
+    read_nextui_ra_settings
 
-    if [ "$ra_enable" != "1" ]; then
-        echo "RetroAchievements: disabled in NextUI, disabling in PPSSPP."
-        set_achievements_setting "AchievementsEnable" "False"
-        rm -f "$PPSSPP_RA_TOKEN_FILE"
+    # NextUI always saves raEnable; without it the settings file predates
+    # RetroAchievements support, so there is no preference to mirror.
+    if [ "$ra_enable_set" != "1" ]; then
+        echo "RetroAchievements: not configured in NextUI, leaving PPSSPP config unchanged."
         return
     fi
 
-    if [ -z "$ra_username" ] || [ -z "$ra_token" ] || [ "$ra_authenticated" = "0" ]; then
-        echo "RetroAchievements: enabled in NextUI but not logged in, disabling in PPSSPP."
+    if [ "$ra_enable" != "1" ]; then
+        disable_retroachievements "disabled in NextUI"
+        return
+    fi
+
+    # NextUI saves raAuthenticated=1 only after a successful login (it
+    # defaults to 0), and its own frontend requires it together with a token.
+    if [ -z "$ra_username" ] || [ -z "$ra_token" ] || [ "$ra_authenticated" != "1" ]; then
+        disable_retroachievements "enabled in NextUI but not logged in"
         echo "RetroAchievements: log in via NextUI Settings > RetroAchievements first."
-        set_achievements_setting "AchievementsEnable" "False"
-        rm -f "$PPSSPP_RA_TOKEN_FILE"
         return
     fi
 
     ra_hardcore_value="False"
     [ "$ra_hardcore" = "1" ] && ra_hardcore_value="True"
 
-    echo "RetroAchievements: enabling for user '$ra_username' (hardcore: $ra_hardcore_value)."
-    set_achievements_setting "AchievementsEnable" "True"
-    set_achievements_setting "AchievementsUserName" "$ra_username"
-    set_achievements_setting "AchievementsChallengeMode" "$ra_hardcore_value"
+    printf "RetroAchievements: enabling for user '%s' (hardcore: %s).\n" "$ra_username" "$ra_hardcore_value"
+    set -- \
+        "AchievementsEnable" "True" \
+        "AchievementsUserName" "$ra_username" \
+        "AchievementsChallengeMode" "$ra_hardcore_value"
 
-    # PPSSPP reads the token file verbatim, so write it without a newline.
-    if [ "$(cat "$PPSSPP_RA_TOKEN_FILE" 2>/dev/null)" != "$ra_token" ]; then
-        (umask 077 && printf '%s' "$ra_token" >"$PPSSPP_RA_TOKEN_FILE.tmp") &&
-            mv -f "$PPSSPP_RA_TOKEN_FILE.tmp" "$PPSSPP_RA_TOKEN_FILE"
-        rm -f "$PPSSPP_RA_TOKEN_FILE.tmp"
-    fi
-
-    sync_retroachievements_host
-}
-
-# NextUI's offline RetroAchievements support lives inside minarch (it hooks
-# rcheevos' server calls in-process); it is not a network service PPSSPP can
-# use. PPSSPP therefore talks to retroachievements.org directly, unless the
-# user points it at another server (e.g. a local caching proxy) by putting a
-# URL in $USERDATA_PATH/PSP-ppsspp/ra-host. Only a host set this way is ever
-# reset, so a host configured by hand inside PPSSPP is left alone.
-sync_retroachievements_host() {
+    # NextUI's offline RetroAchievements support lives inside minarch (it
+    # hooks rcheevos' server calls in-process); it is not a network service
+    # PPSSPP can use. PPSSPP therefore talks to retroachievements.org
+    # directly, unless the user points it at another server (e.g. a local
+    # caching proxy) by putting a URL in $USERDATA_PATH/PSP-ppsspp/ra-host.
+    # Only a host set this way is ever reset, so a host configured by hand
+    # inside PPSSPP is left alone.
     ra_host_file="$USERDATA_PATH/PSP-ppsspp/ra-host"
     ra_host_marker="$USERDATA_PATH/PSP-ppsspp/.ra-host-managed"
-
     ra_host=""
     if [ -f "$ra_host_file" ]; then
         ra_host="$(head -n 1 "$ra_host_file" | tr -d '\r\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
     fi
-
     if [ -n "$ra_host" ]; then
-        echo "RetroAchievements: using custom server $ra_host."
-        set_achievements_setting "AchievementsHost" "$ra_host"
-        touch "$ra_host_marker"
+        printf 'RetroAchievements: using custom server %s.\n' "$ra_host"
+        set -- "$@" "AchievementsHost" "$ra_host"
     elif [ -f "$ra_host_marker" ]; then
         echo "RetroAchievements: custom server removed, using retroachievements.org."
-        set_achievements_setting "AchievementsHost" ""
-        rm -f "$ra_host_marker"
+        set -- "$@" "AchievementsHost" ""
+    fi
+
+    if set_ini_values "$PPSSPP_INI" "Achievements" "$@"; then
+        if [ -n "$ra_host" ]; then
+            touch "$ra_host_marker"
+        else
+            rm -f "$ra_host_marker"
+        fi
+    fi
+
+    # PPSSPP reads the token file verbatim, so write it without a newline,
+    # and compare byte for byte so a stray trailing newline gets fixed.
+    if ! printf '%s' "$ra_token" | cmp -s - "$PPSSPP_RA_TOKEN_FILE"; then
+        ra_token_tmp="$PPSSPP_RA_TOKEN_FILE.tmp.$$"
+        (umask 077 && printf '%s' "$ra_token" >"$ra_token_tmp") &&
+            mv -f "$ra_token_tmp" "$PPSSPP_RA_TOKEN_FILE"
+        rm -f "$ra_token_tmp"
     fi
 }
 
@@ -289,13 +362,14 @@ main() {
 
         # Detect Trimui model (Brick or Smart Pro)
         trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
+        aspect_ratio="1.000000"
         if [ "$trimui_model" = "Trimui Brick" ]; then
-            update_ppsspp_setting "DisplayAspectRatio" "0.848000"
-        else
-            update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+            aspect_ratio="0.848000"
         fi
 
-        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        update_ppsspp_graphics \
+            "DisplayAspectRatio" "$aspect_ratio" \
+            "GraphicsBackend" "0 (OPENGL)"
         export SDL_VIDEODRIVER=mali
         setalpha 0
         rm -f "$EMU_DIR/.config/ppsspp/PSP/SYSTEM/FailedGraphicsBackends.txt"
@@ -303,8 +377,9 @@ main() {
         set_cpu_settings 0 ondemand 1608000 1800000
 
     elif [ "$PLATFORM" = "tg5050" ]; then
-        update_ppsspp_setting "DisplayAspectRatio" "1.000000"
-        update_ppsspp_setting "GraphicsBackend" "3 (VULKAN)"
+        update_ppsspp_graphics \
+            "DisplayAspectRatio" "1.000000" \
+            "GraphicsBackend" "3 (VULKAN)"
         save_cpu_settings 0
         save_cpu_settings 4
         set_cpu_settings 0 ondemand 1416000 1416000
