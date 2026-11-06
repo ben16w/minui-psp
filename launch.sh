@@ -26,7 +26,12 @@ export LD_LIBRARY_PATH="$EMU_DIR:$PAK_DIR/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
 
 PPSSPP_BIN="PPSSPPSDL"
-PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
+PPSSPP_SYSTEM_DIR="$EMU_DIR/.config/ppsspp/PSP/SYSTEM"
+PPSSPP_INI="$PPSSPP_SYSTEM_DIR/ppsspp.ini"
+# PPSSPP keeps the RetroAchievements login token outside the ini, in
+# SYSTEM/ppsspp_<secret>.dat (see NativeSaveSecret/NativeLoadSecret in PPSSPP).
+PPSSPP_RA_TOKEN_FILE="$PPSSPP_SYSTEM_DIR/ppsspp_retroachievements.dat"
+NEXTUI_SETTINGS="$SHARED_USERDATA_PATH/minuisettings.txt"
 
 cleanup() {
     rm -f /tmp/stay_awake
@@ -57,6 +62,179 @@ update_ppsspp_setting() {
         sed -i "s/^${setting_name} *= *.*/${setting_name} = ${setting_value}/" "$PPSSPP_INI"
     else
         echo "Setting '$setting_name' not found in ini."
+    fi
+}
+
+# Print the value of a key from NextUI's minuisettings.txt ("key=value" lines;
+# the last occurrence wins, like NextUI's own parser).
+read_nextui_setting() {
+    sed -n "s/^$1=//p" "$NEXTUI_SETTINGS" 2>/dev/null | tail -n 1 | tr -d '\r\n'
+}
+
+# Set "key = value" inside [section] of an ini file. Unlike
+# update_ppsspp_setting this matches the exact key name within the section
+# only, inserts the key (and section) when missing, and passes the value
+# through the environment so no character in it needs escaping.
+set_ini_value() {
+    ini_file="$1"
+    ini_tmp="$ini_file.tmp.$$"
+
+    INI_SECTION="$2" INI_KEY="$3" INI_VALUE="$4" awk '
+        BEGIN {
+            section = ENVIRON["INI_SECTION"]
+            key = ENVIRON["INI_KEY"]
+            value = ENVIRON["INI_VALUE"]
+        }
+        function emit() {
+            print key " = " value
+            done = 1
+        }
+        {
+            line = $0
+            sub(/\r$/, "", line)
+            # Ignore a UTF-8 byte order mark before the first section header.
+            if (NR == 1 && index(line, "[") > 1 && index(line, "[") <= 4)
+                line = substr(line, index(line, "["))
+
+            if (line ~ /^[ \t]*\[.*\][ \t]*$/) {
+                # Leaving the target section without having seen the key.
+                if (in_section && !done)
+                    emit()
+                name = line
+                gsub(/^[ \t]*\[|\][ \t]*$/, "", name)
+                in_section = (name == section)
+                if (in_section)
+                    seen = 1
+                print
+                next
+            }
+
+            if (in_section && (eq = index(line, "=")) > 0) {
+                k = substr(line, 1, eq - 1)
+                gsub(/^[ \t]+|[ \t]+$/, "", k)
+                if (k == key) {
+                    if (!done)
+                        emit()
+                    next
+                }
+            }
+            print
+        }
+        END {
+            if (in_section && !done)
+                emit()
+            if (!seen) {
+                print "[" section "]"
+                emit()
+            }
+        }
+    ' "$ini_file" >"$ini_tmp" && mv -f "$ini_tmp" "$ini_file"
+    status=$?
+    rm -f "$ini_tmp"
+    return $status
+}
+
+set_achievements_setting() {
+    set_ini_value "$PPSSPP_INI" "Achievements" "$1" "$2"
+}
+
+# Mirror the RetroAchievements settings from the NextUI settings menu into
+# PPSSPP. Tracing is suspended while this runs so the login token never ends
+# up in the debug log.
+sync_retroachievements() {
+    case "$-" in
+    *x*)
+        set +x
+        _sync_retroachievements
+        set -x
+        ;;
+    *)
+        _sync_retroachievements
+        ;;
+    esac
+    return 0
+}
+
+_sync_retroachievements() {
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
+        echo "RetroAchievements: config changes disabled via no-config-changes flag."
+        return
+    fi
+    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-ra-sync" ]; then
+        echo "RetroAchievements: sync disabled via no-ra-sync flag."
+        return
+    fi
+    if [ ! -f "$NEXTUI_SETTINGS" ]; then
+        echo "RetroAchievements: no NextUI settings found, leaving PPSSPP config unchanged."
+        return
+    fi
+    if [ ! -f "$PPSSPP_INI" ]; then
+        echo "RetroAchievements: $PPSSPP_INI not found."
+        return
+    fi
+
+    ra_enable="$(read_nextui_setting raEnable)"
+    ra_username="$(read_nextui_setting raUsername)"
+    ra_token="$(read_nextui_setting raToken)"
+    ra_authenticated="$(read_nextui_setting raAuthenticated)"
+    ra_hardcore="$(read_nextui_setting raHardcoreMode)"
+
+    if [ "$ra_enable" != "1" ]; then
+        echo "RetroAchievements: disabled in NextUI, disabling in PPSSPP."
+        set_achievements_setting "AchievementsEnable" "False"
+        rm -f "$PPSSPP_RA_TOKEN_FILE"
+        return
+    fi
+
+    if [ -z "$ra_username" ] || [ -z "$ra_token" ] || [ "$ra_authenticated" = "0" ]; then
+        echo "RetroAchievements: enabled in NextUI but not logged in, disabling in PPSSPP."
+        echo "RetroAchievements: log in via NextUI Settings > RetroAchievements first."
+        set_achievements_setting "AchievementsEnable" "False"
+        rm -f "$PPSSPP_RA_TOKEN_FILE"
+        return
+    fi
+
+    ra_hardcore_value="False"
+    [ "$ra_hardcore" = "1" ] && ra_hardcore_value="True"
+
+    echo "RetroAchievements: enabling for user '$ra_username' (hardcore: $ra_hardcore_value)."
+    set_achievements_setting "AchievementsEnable" "True"
+    set_achievements_setting "AchievementsUserName" "$ra_username"
+    set_achievements_setting "AchievementsChallengeMode" "$ra_hardcore_value"
+
+    # PPSSPP reads the token file verbatim, so write it without a newline.
+    if [ "$(cat "$PPSSPP_RA_TOKEN_FILE" 2>/dev/null)" != "$ra_token" ]; then
+        (umask 077 && printf '%s' "$ra_token" >"$PPSSPP_RA_TOKEN_FILE.tmp") &&
+            mv -f "$PPSSPP_RA_TOKEN_FILE.tmp" "$PPSSPP_RA_TOKEN_FILE"
+        rm -f "$PPSSPP_RA_TOKEN_FILE.tmp"
+    fi
+
+    sync_retroachievements_host
+}
+
+# NextUI's offline RetroAchievements support lives inside minarch (it hooks
+# rcheevos' server calls in-process); it is not a network service PPSSPP can
+# use. PPSSPP therefore talks to retroachievements.org directly, unless the
+# user points it at another server (e.g. a local caching proxy) by putting a
+# URL in $USERDATA_PATH/PSP-ppsspp/ra-host. Only a host set this way is ever
+# reset, so a host configured by hand inside PPSSPP is left alone.
+sync_retroachievements_host() {
+    ra_host_file="$USERDATA_PATH/PSP-ppsspp/ra-host"
+    ra_host_marker="$USERDATA_PATH/PSP-ppsspp/.ra-host-managed"
+
+    ra_host=""
+    if [ -f "$ra_host_file" ]; then
+        ra_host="$(head -n 1 "$ra_host_file" | tr -d '\r\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+    fi
+
+    if [ -n "$ra_host" ]; then
+        echo "RetroAchievements: using custom server $ra_host."
+        set_achievements_setting "AchievementsHost" "$ra_host"
+        touch "$ra_host_marker"
+    elif [ -f "$ra_host_marker" ]; then
+        echo "RetroAchievements: custom server removed, using retroachievements.org."
+        set_achievements_setting "AchievementsHost" ""
+        rm -f "$ra_host_marker"
     fi
 }
 
@@ -145,6 +323,8 @@ main() {
         echo "$PLATFORM is not a supported platform."
         exit 1
     fi
+
+    sync_retroachievements
 
     mkdir -p "$SDCARD_PATH/Saves/PSP"
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA"

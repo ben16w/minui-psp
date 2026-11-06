@@ -50,6 +50,21 @@ Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for T
 
 The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable automatic configuration changes, create a file named `no-config-changes` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. This will prevent the pak from modifying aspect ratio and other configuration settings.
 
+## RetroAchievements
+
+On NextUI, the pak copies the RetroAchievements settings from the NextUI Settings menu into PPSSPP every time a game is launched:
+
+- **Enabled and logged in** in NextUI: RetroAchievements are enabled in PPSSPP with the same username and login token, and NextUI's Hardcore Mode setting is applied to PPSSPP's Hardcore Mode. No separate login inside PPSSPP is needed.
+- **Disabled, or not logged in** in NextUI: RetroAchievements are disabled in PPSSPP and the PPSSPP login token is removed.
+- **MinUI** (no NextUI settings file): PPSSPP's own RetroAchievements settings are left untouched.
+
+Notes:
+
+- NextUI's offline RetroAchievements mode (caching and replaying unlocks when Wi-Fi returns) is built into NextUI's own emulator frontend and is not available to standalone PPSSPP. PPSSPP connects to retroachievements.org directly, so Wi-Fi must be connected when the game starts. If the login fails at startup, PPSSPP retries it periodically while its menu is open.
+- In Hardcore Mode, PPSSPP disables save states.
+- To manage RetroAchievements inside PPSSPP yourself, create a file named `no-ra-sync` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. The `no-config-changes` file also disables this sync.
+- To use a different RetroAchievements server (for example a local caching proxy), put its URL (e.g. `http://192.168.1.10:8080`) on the first line of `/.userdata/<PLATFORM>/PSP-ppsspp/ra-host`. Delete the file to switch back to retroachievements.org.
+
 ## Skip Buffer Effects
 
 This option can be found under Settings > Graphics > Speed Hacks > Skip buffer effects. Use it as a last‑resort speed boost for demanding games. It can break transparency/lighting or even cause black screens. It's best to toggle it per game as needed.
