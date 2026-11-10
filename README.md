@@ -37,6 +37,12 @@ Deep sleep is supported on compatible devices. Click the power button to enter d
 - Save states are stored in the `/.userdata/shared/PSP-ppsspp/` directory.
 - Game saves are stored in the `/Saves/PSP/` directory.
 
+## Game Switcher Image
+
+Like the built-in emulators, the image NextUI's Game Switcher shows for a game comes from a save state. When PPSSPP exits (or the device powers off while it runs), the pak takes the newest save state written during that session, converts its thumbnail with the bundled `jpg2bmp` and writes it to `/.userdata/shared/.minui/PSP/<rom file>.<slot>.bmp`, together with the slot number in `<rom file>.txt`.
+
+No save state means no image: NextUI shows "No Preview". Opening and resuming a game works as before.
+
 ## PPSSPP Configuration
 
 The PPSSPP configuration directory is located at `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/`. This directory contains:
@@ -67,3 +73,27 @@ This option can be found under Settings > Graphics > Speed Hacks > Skip buffer e
 This project uses PPSSPP, which is open-source software. Please refer to the original PPSSPP [LICENSE.TXT](PPSSPP/LICENSE.TXT) file for more details.
 
 The project code which is not part of PPSSPP is licensed under the [MIT License](https://opensource.org/licenses/MIT). See the project [LICENSE](LICENSE) file for more details.
+
+## Testing the Game Switcher image on a device
+
+`tests/device/run.sh` runs the real `launch.sh` and `bin/jpg2bmp` against a stub PPSSPP in a throw-away SD tree, and checks the preview image and slot file (no save state, one state, the newest slot wins, other games unaffected), that the resume hand-off file is removed, and the SIGTERM (power-off) path. Over SSH:
+
+```sh
+scp -r tests root@<device>:/mnt/SDCARD/Emus/tg5040/PSP.pak/
+ssh root@<device> 'sh /mnt/SDCARD/Emus/tg5040/PSP.pak/tests/device/run.sh'
+```
+
+It prints PASS/FAIL per test and exits non-zero on failure. Logs are kept in `/tmp/psp-preview-test-out`. The real SD card is not modified.
+
+### Fully automated end-to-end test
+
+`tests/device/e2e.sh` drives the real NextUI and PPSSPP on a TrimUI device with no one at the buttons: it injects button presses through the `TRIMUI Player1` evdev device, launches the first game in `Roms/*(PSP)` through NextUI's `/tmp/next` hand-off, and takes screenshots with the [Screenshot Monitor](https://github.com/josegonzalez/minui-screenshot-monitor-pak) pak's `bin/screenshot`. Screenshots are judged by the bundled `pngcolor` helper.
+
+Requirements: root over SSH, this pak and the Screenshot Monitor pak installed, and a game in `Roms/*(PSP)`. CI publishes the `psp-device-tests` artifact (`psp-device-tests.tar.gz`) with the script, fixtures and the aarch64 helper:
+
+```sh
+scp psp-device-tests.tar.gz root@<device>:/tmp/
+ssh root@<device> 'cd /tmp && tar xzf psp-device-tests.tar.gz && sh tests/device/e2e.sh'
+```
+
+The script temporarily changes the recents and resume files of the test game and restores them on exit (its backup is kept on the SD card, so a run that was cut short is restored at the start of the next one). It restarts NextUI with SIGKILL, never SIGTERM, because NextUI treats SIGTERM as a power-off request. It expects these PPSSPP hotkeys: select+R1 saves a state, select+right moves to the next slot, select+start exits. See the header of `e2e.sh` for the settings (`PSP_KEYS`, `EXIT_KEYS`, wait times).
