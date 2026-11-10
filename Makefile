@@ -63,7 +63,7 @@ tests/device/bin/pngcolor: src/pngcolor.c src/stb_image.h
 # Everything needed to run the on-device tests; copy to the device and extract anywhere.
 test-bundle: tests/device/bin/pngcolor
 	mkdir -p dist
-	tar -czf dist/psp-device-tests.tar.gz tests/device/run.sh tests/device/e2e.sh tests/device/fixtures tests/device/bin
+	tar -czf dist/psp-device-tests.tar.gz tests/device/run.sh tests/device/e2e.sh tests/device/ra.sh tests/device/fixtures tests/device/bin
 	ls -lah dist
 
 release: build

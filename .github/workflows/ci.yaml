@@ -60,12 +60,12 @@ jobs:
           path: dist/psp-device-tests.tar.gz
 
       - name: Lint shell scripts
-        run: shellcheck launch.sh tests/device/run.sh tests/device/e2e.sh
+        run: shellcheck -x launch.sh scripts/*.sh tests/device/run.sh tests/device/e2e.sh tests/device/ra.sh
 
       - name: Check release contents
         run: |
           zip="dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip"
-          for f in launch.sh pak.json bin/jpg2bmp; do
+          for f in launch.sh scripts/ini.sh scripts/set_ini_values.awk scripts/retroachievements.sh pak.json bin/jpg2bmp; do
             unzip -l "$zip" | grep -q " $f$" || { echo "missing from release: $f"; exit 1; }
           done
           if unzip -l "$zip" | grep -qE " (src|tests)/"; then
@@ -80,6 +80,20 @@ jobs:
       # against a stub PPSSPP. Tests the unpacked release, not the repository checkout.
       - name: Test Game Switcher preview
         run: SRC_PAK="$RUNNER_TEMP/rel" OUT_DIR="$RUNNER_TEMP/test-out" sh tests/device/run.sh
+
+      # Runs the real launch.sh against a stub PPSSPP with NextUI-style settings.
+      # Tests the unpacked release under dash, then in the busybox image, where every
+      # tool is a BusyBox applet like on the device.
+      - name: Test RetroAchievements sync (dash)
+        timeout-minutes: 5
+        run: SRC_PAK="$RUNNER_TEMP/rel" OUT_DIR="$RUNNER_TEMP/test-out/ra-dash" sh tests/device/ra.sh
+
+      - name: Test RetroAchievements sync (BusyBox)
+        timeout-minutes: 5
+        run: |
+          docker run --rm -v "$PWD:/repo:ro" -v "$RUNNER_TEMP:$RUNNER_TEMP" \
+            -e SRC_PAK="$RUNNER_TEMP/rel" -e OUT_DIR="$RUNNER_TEMP/test-out/ra-busybox" \
+            busybox:1.36.1 sh /repo/tests/device/ra.sh
 
       - name: Upload test logs
         if: failure()

@@ -1,5 +1,5 @@
 #!/bin/sh
-# End-to-end test of the Game Switcher preview on a real TrimUI device (PR #9).
+# End-to-end test of the Game Switcher preview on a real TrimUI device.
 #
 # Unlike run.sh (stub emulator, throw-away SD tree), this drives the REAL NextUI, the REAL
 # PPSSPP pak and the real SD card, with no human at the buttons:
@@ -68,7 +68,7 @@ done
 # --- preflight -----------------------------------------------------------------------
 [ "$(id -u)" = 0 ] || die "run as root (needed to write to /dev/input)"
 [ -d "$PAK" ] || die "PSP pak not found at $PAK"
-[ -x "$PAK/bin/jpg2bmp" ] || die "$PAK/bin/jpg2bmp missing (install the pak from the PR's CI artifact)"
+[ -x "$PAK/bin/jpg2bmp" ] || die "$PAK/bin/jpg2bmp missing (install a pak built by CI or make build)"
 [ -f "$MON/bin/screenshot" ] || die "Screenshot Monitor pak not found at $MON"
 [ -x "$PNGCOLOR" ] || die "$PNGCOLOR missing (use the psp-device-tests artifact)"
 [ -f /tmp/nextui_exec ] || die "NextUI launcher not running (/tmp/nextui_exec missing)"
