@@ -50,6 +50,44 @@ jobs:
           name: "${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip"
           path: "dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip"
 
+      - name: Build device test bundle
+        run: make test-bundle
+
+      - name: Upload device test bundle
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: psp-device-tests
+          path: dist/psp-device-tests.tar.gz
+
+      - name: Lint shell scripts
+        run: shellcheck launch.sh tests/device/run.sh tests/device/e2e.sh
+
+      - name: Check release contents
+        run: |
+          zip="dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip"
+          for f in launch.sh pak.json bin/jpg2bmp; do
+            unzip -l "$zip" | grep -q " $f$" || { echo "missing from release: $f"; exit 1; }
+          done
+          if unzip -l "$zip" | grep -qE " (src|tests)/"; then
+            echo "src/ or tests/ leaked into the release"
+            exit 1
+          fi
+          rm -rf "$RUNNER_TEMP/rel" && mkdir -p "$RUNNER_TEMP/rel"
+          unzip -q "$zip" -d "$RUNNER_TEMP/rel"
+          file "$RUNNER_TEMP/rel/bin/jpg2bmp" | grep -q "ARM aarch64"
+
+      # Runs the real launch.sh and the shipped aarch64 jpg2bmp (this runner is arm64)
+      # against a stub PPSSPP. Tests the unpacked release, not the repository checkout.
+      - name: Test Game Switcher preview
+        run: SRC_PAK="$RUNNER_TEMP/rel" OUT_DIR="$RUNNER_TEMP/test-out" sh tests/device/run.sh
+
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: preview-test-logs
+          path: ${{ runner.temp }}/test-out
+
   test-release:
     name: test-release
     runs-on: ubuntu-24.04

@@ -5,3 +5,5 @@ PPSSPP/PPSSPPSDL_tg5050
 
 !bin/.gitkeep
 PPSSPP/libstdc++.so.6
+src/stb_image.h
+tests/device/bin/
