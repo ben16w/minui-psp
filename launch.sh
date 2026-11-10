@@ -107,6 +107,15 @@ main() {
         export PLATFORM="tg5040"
     fi
 
+    if [ "$PLATFORM" = "h700" ]; then
+        echo "$PLATFORM $DEVICE"
+	    update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        export SDL_VIDEODRIVER=mali
+        setalpha 0
+        rm -f "$EMU_DIR/.config/ppsspp/PSP/SYSTEM/FailedGraphicsBackends.txt"
+    fi
+    
     if [ "$PLATFORM" = "tg5040" ]; then
 
         # Detect Trimui model (Brick or Smart Pro)
@@ -140,7 +149,7 @@ main() {
 
     chmod +x "$PAK_DIR/bin/minui-power-control"
 
-    allowed_platforms="tg5040 tg5050"
+    allowed_platforms="tg5040 tg5050 h700"
     if ! echo "$allowed_platforms" | grep -q "$PLATFORM"; then
         echo "$PLATFORM is not a supported platform."
         exit 1
@@ -155,8 +164,9 @@ main() {
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
     # Launch emulator
+    cd "$EMU_DIR" || exit 1
     minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
-    "${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
+    "./${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
 }
 
 main "$@"
