@@ -50,6 +50,43 @@ jobs:
           name: "${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip"
           path: "dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip"
 
+      - name: Lint shell scripts
+        run: shellcheck -x launch.sh scripts/*.sh tests/device/ra.sh
+
+      - name: Check release contents
+        run: |
+          zip="dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip"
+          for f in launch.sh scripts/ini.sh scripts/set_ini_values.awk scripts/retroachievements.sh pak.json; do
+            unzip -l "$zip" | grep -q " $f$" || { echo "missing from release: $f"; exit 1; }
+          done
+          if unzip -l "$zip" | grep -qE " (src|tests)/"; then
+            echo "src/ or tests/ leaked into the release"
+            exit 1
+          fi
+          rm -rf "$RUNNER_TEMP/rel" && mkdir -p "$RUNNER_TEMP/rel"
+          unzip -q "$zip" -d "$RUNNER_TEMP/rel"
+
+      # Runs the real launch.sh against a stub PPSSPP with NextUI-style settings.
+      # Tests the unpacked release under dash, then in the busybox image, where every
+      # tool is a BusyBox applet like on the device.
+      - name: Test RetroAchievements sync (dash)
+        timeout-minutes: 5
+        run: SRC_PAK="$RUNNER_TEMP/rel" OUT_DIR="$RUNNER_TEMP/test-out/ra-dash" sh tests/device/ra.sh
+
+      - name: Test RetroAchievements sync (BusyBox)
+        timeout-minutes: 5
+        run: |
+          docker run --rm -v "$PWD:/repo:ro" -v "$RUNNER_TEMP:$RUNNER_TEMP" \
+            -e SRC_PAK="$RUNNER_TEMP/rel" -e OUT_DIR="$RUNNER_TEMP/test-out/ra-busybox" \
+            busybox:1.36.1 sh /repo/tests/device/ra.sh
+
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: test-logs
+          path: ${{ runner.temp }}/test-out
+
   test-release:
     name: test-release
     runs-on: ubuntu-24.04
