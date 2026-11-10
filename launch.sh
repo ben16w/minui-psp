@@ -26,10 +26,18 @@ export LD_LIBRARY_PATH="$EMU_DIR:$PAK_DIR/lib:/usr/trimui/lib:$LD_LIBRARY_PATH"
 export SDL_GAMECONTROLLERCONFIG_FILE="$EMU_DIR/assets/gamecontrollerdb.txt"
 
 PPSSPP_BIN="PPSSPPSDL"
-PPSSPP_INI="$EMU_DIR/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
+PPSSPP_SYSTEM_DIR="$EMU_DIR/.config/ppsspp/PSP/SYSTEM"
+PPSSPP_INI="$PPSSPP_SYSTEM_DIR/ppsspp.ini"
+
+# shellcheck source=scripts/ini.sh
+. "$PAK_DIR/scripts/ini.sh"
+# shellcheck source=scripts/retroachievements.sh
+. "$PAK_DIR/scripts/retroachievements.sh"
 
 cleanup() {
     rm -f /tmp/stay_awake
+    # Temp files left behind if a signal interrupted an ini/token write.
+    rm -f "$PPSSPP_INI.tmp.$$" "$PPSSPP_RA_TOKEN_FILE.tmp.$$"
     
     restore_cpu_settings 0
     restore_cpu_settings 4
@@ -38,26 +46,28 @@ cleanup() {
     umount "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE" || true
 }
 
+# Succeeds (and says so) when the user opted out of config changes.
+config_changes_disabled() {
+    [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ] || return 1
+    echo "${1}Config changes disabled via no-config-changes flag."
+}
+
+# Set one setting in [SECTION] of ppsspp.ini; a missing setting is added:
+#   update_ppsspp_setting SECTION NAME VALUE
 update_ppsspp_setting() {
-    setting_name="$1"
-    setting_value="$2"
-    
+    section="$1"
+    setting_name="$2"
+    setting_value="$3"
+
     # Allow users to disable config changes
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
-        echo "Config changes disabled via no-config-changes flag."
-        return
-    fi
+    config_changes_disabled && return
 
     if [ ! -f "$PPSSPP_INI" ]; then
         echo "Error: $PPSSPP_INI not found."
         exit 1
     fi
 
-    if grep -q "^${setting_name}" "$PPSSPP_INI"; then
-        sed -i "s/^${setting_name} *= *.*/${setting_name} = ${setting_value}/" "$PPSSPP_INI"
-    else
-        echo "Setting '$setting_name' not found in ini."
-    fi
+    set_ini_values "$PPSSPP_INI" "$section" "$setting_name" "$setting_value"
 }
 
 save_cpu_settings() {
@@ -112,12 +122,12 @@ main() {
         # Detect Trimui model (Brick or Smart Pro)
         trimui_model=$(strings /usr/trimui/bin/MainUI | grep ^Trimui)
         if [ "$trimui_model" = "Trimui Brick" ]; then
-            update_ppsspp_setting "DisplayAspectRatio" "0.848000"
+            update_ppsspp_setting "Graphics" "DisplayAspectRatio" "0.848000"
         else
-            update_ppsspp_setting "DisplayAspectRatio" "1.000000"
+            update_ppsspp_setting "Graphics" "DisplayAspectRatio" "1.000000"
         fi
 
-        update_ppsspp_setting "GraphicsBackend" "0 (OPENGL)"
+        update_ppsspp_setting "Graphics" "GraphicsBackend" "0 (OPENGL)"
         export SDL_VIDEODRIVER=mali
         setalpha 0
         rm -f "$EMU_DIR/.config/ppsspp/PSP/SYSTEM/FailedGraphicsBackends.txt"
@@ -125,8 +135,8 @@ main() {
         set_cpu_settings 0 ondemand 1608000 1800000
 
     elif [ "$PLATFORM" = "tg5050" ]; then
-        update_ppsspp_setting "DisplayAspectRatio" "1.000000"
-        update_ppsspp_setting "GraphicsBackend" "3 (VULKAN)"
+        update_ppsspp_setting "Graphics" "DisplayAspectRatio" "1.000000"
+        update_ppsspp_setting "Graphics" "GraphicsBackend" "3 (VULKAN)"
         save_cpu_settings 0
         save_cpu_settings 4
         set_cpu_settings 0 ondemand 1416000 1416000
@@ -145,6 +155,8 @@ main() {
         echo "$PLATFORM is not a supported platform."
         exit 1
     fi
+
+    sync_retroachievements
 
     mkdir -p "$SDCARD_PATH/Saves/PSP"
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/SAVEDATA"
