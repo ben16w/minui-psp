@@ -10,12 +10,22 @@
     "BRICK": ".github/resources/banner.png"
   },
   "platforms": [
+    "tg4040",
     "tg5040",
-    "tg5050"
+    "tg5050",
+    "h700"
   ],
   "update_ignore": [
-    "PPSSPP/.config/ppsspp/PSP/SYSTEM/controls.ini",
-    "PPSSPP/.config/ppsspp/PSP/SYSTEM/ppsspp.ini"
+    "config/controls-Brick.ini",
+    "config/controls-BrickPro.ini",
+    "config/controls-SmartPro.ini",
+    "config/controls-SmartProS.ini",
+    "config/controls-h700.ini",
+    "config/ppsspp-Brick.ini",
+    "config/ppsspp-BrickPro.ini",
+    "config/ppsspp-SmartPro.ini",
+    "config/ppsspp-SmartProS.ini",
+    "config/ppsspp-h700.ini"
   ],
   "launch": "launch.sh"
 }

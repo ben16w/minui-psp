@@ -6,8 +6,10 @@ A [MinUI](https://github.com/shauninman/MinUI) and [NextUI](https://github.com/L
 
 This pak is designed and tested on the following MinUI Platforms and devices:
 
+- `tg4040`: Trimui Brick Pro
 - `tg5040`: Trimui Brick (formerly `tg3040`), Trimui Smart Pro
 - `tg5050`: Trimui Smart Pro S
+- `h700`: Anbernic H700 devices (e.g. RG XX)
 
 The pak may work on other platforms and devices, but it has not been tested on them.
 
@@ -21,7 +23,7 @@ The pak may work on other platforms and devices, but it has not been tested on t
 6. Create a folder at `/Roms/PlayStation Portable (PSP)` and place your ROMs in this directory.
 7. Unmount your SD Card and insert it into your MinUI device.
 
-Note: The `<PLATFORM>` folder name is based on the name of your device. For example, if you are using a TrimUI Brick, the folder is `tg5040`.
+Note: The `<PLATFORM>` folder name is based on the name of your device. For example, use `tg4040` for TrimUI Brick Pro and `tg5040` for TrimUI Brick.
 
 ## Extra Controls
 
@@ -39,16 +41,14 @@ Deep sleep is supported on compatible devices. Click the power button to enter d
 
 ## PPSSPP Configuration
 
-The PPSSPP configuration directory is located at `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/`. This directory contains:
+Per-device defaults live in `/Emus/<PLATFORM>/PSP.pak/config/` (`controls-*.ini` and `ppsspp-*.ini`). On launch the active profile is copied into `PPSSPP/.config/ppsspp/PSP/SYSTEM/`; on exit, changes are written back to the matching `config/` files.
+
+The PPSSPP configuration directory also contains:
 
 - **TEXTURES directory**: `/Emus/<PLATFORM>/PSP.pak/PPSSPP/.config/ppsspp/PSP/TEXTURES/` - Place custom texture packs here for texture replacement/modding.
-- **SYSTEM directory**: Contains configuration files like `ppsspp.ini` and `controls.ini`.
+- **SYSTEM directory**: The live `ppsspp.ini` and `controls.ini` used while PPSSPP runs.
 
-Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg5040` for TrimUI Brick).
-
-## Aspect Ratio
-
-The pak auto-sets the Aspect Ratio based on the device model. On Trimui Brick it uses `0.848000`, on other supported devices it uses `1.000000`. To disable automatic configuration changes, create a file named `no-config-changes` in `/.userdata/<PLATFORM>/PSP-ppsspp/`. This will prevent the pak from modifying aspect ratio and other configuration settings.
+Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg4040` for TrimUI Brick Pro, `tg5040` for TrimUI Brick, `h700` for Anbernic H700).
 
 ## Skip Buffer Effects
 
