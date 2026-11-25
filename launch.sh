@@ -87,27 +87,6 @@ save_ppsspp_config() {
     [ -f "$PPSSPP_INI" ] && cp -f "$PPSSPP_INI" "$ppsspp_dst"
 }
 
-update_ppsspp_setting() {
-    setting_name="$1"
-    setting_value="$2"
-
-    if [ -f "$USERDATA_PATH/PSP-ppsspp/no-config-changes" ]; then
-        echo "Config changes disabled via no-config-changes flag."
-        return
-    fi
-
-    if [ ! -f "$PPSSPP_INI" ]; then
-        echo "Error: $PPSSPP_INI not found."
-        exit 1
-    fi
-
-    if grep -q "^${setting_name}" "$PPSSPP_INI"; then
-        sed -i "s/^${setting_name} *= *.*/${setting_name} = ${setting_value}/" "$PPSSPP_INI"
-    else
-        echo "Setting '$setting_name' not found in ini."
-    fi
-}
-
 save_cpu_settings() {
     cpu_num="$1"
     cpu_path="/sys/devices/system/cpu/cpu${cpu_num}/cpufreq"
@@ -160,7 +139,6 @@ main() {
 
     case "$PPSSPP_PROFILE" in
         Brick)
-            update_ppsspp_setting "DisplayAspectRatio" "0.848000"
             export SDL_VIDEODRIVER=mali
             setalpha 0
             rm -f "$PPSSPP_SYSTEM_DIR/FailedGraphicsBackends.txt"
@@ -168,7 +146,6 @@ main() {
             set_cpu_settings 0 ondemand 1608000 1800000
             ;;
         SmartPro)
-            update_ppsspp_setting "DisplayAspectRatio" "1.000000"
             export SDL_VIDEODRIVER=mali
             setalpha 0
             rm -f "$PPSSPP_SYSTEM_DIR/FailedGraphicsBackends.txt"
@@ -176,7 +153,6 @@ main() {
             set_cpu_settings 0 ondemand 1608000 1800000
             ;;
         SmartProS)
-            update_ppsspp_setting "DisplayAspectRatio" "1.000000"
             save_cpu_settings 0
             save_cpu_settings 4
             set_cpu_settings 0 ondemand 1416000 1416000
