@@ -50,10 +50,6 @@ The PPSSPP configuration directory also contains:
 
 Note: The `<PLATFORM>` folder name is based on your device (e.g., `tg4040` for TrimUI Brick Pro, `tg5040` for TrimUI Brick, `h700` for Anbernic H700).
 
-## Aspect Ratio
-
-Each device profile under `config/` ships its own `DisplayAspectRatio`: `0.848000` for Brick and Brick Pro, `1.000000` for Smart Pro, Smart Pro S, and H700. Edit the matching `config/ppsspp-*.ini` (or change it in PPSSPP — the pak writes settings back on exit) if you want a different value.
-
 ## Skip Buffer Effects
 
 This option can be found under Settings > Graphics > Speed Hacks > Skip buffer effects. Use it as a last‑resort speed boost for demanding games. It can break transparency/lighting or even cause black screens. It's best to toggle it per game as needed.
