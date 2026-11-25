@@ -45,6 +45,9 @@ cleanup() {
 
 detect_ppsspp_profile() {
     case "$PLATFORM" in
+        tg4040)
+            PPSSPP_PROFILE="BrickPro"
+            ;;
         tg5050)
             PPSSPP_PROFILE="SmartProS"
             ;;
@@ -55,6 +58,9 @@ detect_ppsspp_profile() {
             else
                 PPSSPP_PROFILE="SmartPro"
             fi
+            ;;
+        h700)
+            PPSSPP_PROFILE="h700"
             ;;
         *)
             echo "$PLATFORM is not a supported platform."
@@ -138,7 +144,7 @@ main() {
     load_ppsspp_config
 
     case "$PPSSPP_PROFILE" in
-        Brick)
+        Brick|BrickPro)
             export SDL_VIDEODRIVER=mali
             setalpha 0
             rm -f "$PPSSPP_SYSTEM_DIR/FailedGraphicsBackends.txt"
@@ -158,6 +164,11 @@ main() {
             set_cpu_settings 0 ondemand 1416000 1416000
             set_cpu_settings 4 performance 1992000 2160000
             ;;
+        h700)
+            export SDL_VIDEODRIVER=mali
+            setalpha 0
+            rm -f "$PPSSPP_SYSTEM_DIR/FailedGraphicsBackends.txt"
+            ;;
     esac
 
     if ! command -v minui-power-control >/dev/null 2>&1; then
@@ -175,8 +186,9 @@ main() {
     mkdir -p "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
     mount -o bind "$SHARED_USERDATA_PATH/PSP-ppsspp" "$EMU_DIR/.config/ppsspp/PSP/PPSSPP_STATE"
 
+    cd "$EMU_DIR" || exit 1
     minui-power-control "${PPSSPP_BIN}_${PLATFORM}" &
-    "${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
+    "./${PPSSPP_BIN}_${PLATFORM}" "$*" --fullscreen --pause-menu-exit
 }
 
 main "$@"
