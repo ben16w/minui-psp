@@ -1,6 +1,6 @@
 PAK_NAME := $(shell jq -r .name pak.json)
 
-MINUI_POWER_CONTROL_VERSION := 1.1.0
+MINUI_POWER_CONTROL_VERSION := 4.0.0
 PPSSPP_RELEASE_URL := https://github.com/ben16w/PPSSPP-spruce/releases/download/beta-main
 SPRUCEOS_PSP_URL := https://raw.githubusercontent.com/spruceUI/spruceOS/main/Emu/PSP
 
